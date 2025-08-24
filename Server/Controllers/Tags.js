@@ -1,8 +1,8 @@
-const Tags=require("../Models/Tags")
+const Categories=require("../Models/Categories")
 
 
 //create Tag Handler function 
-exports.Tag=async (req,res) =>{
+exports.Categories=async (req,res) =>{
     try {
         
         const {name,descriptions} =req.body;
@@ -18,13 +18,13 @@ exports.Tag=async (req,res) =>{
         }
  
  // cretion detail in mongodb
- const Tagdetails=await Tags.create({
+ const categoriesdetails=await Categories.create({
     name:name,
     description:description,
      courses: []   // initially empty
  })
  // consloe 
- console.log(Tagdetails);
+ console.log(categoriesdetails);
  return res.status(200).json({
     success:true,
     message:"Successfull tags are created "
@@ -45,10 +45,10 @@ exports.Tag=async (req,res) =>{
 // get al tags
 
 //create show Tag Handler function 
-exports.ShowTag=async (req ,res) =>{
+exports.ShowCategories=async (req ,res) =>{
     try {
         
-        const alltags=await Tags.find({},{name:true,description:true});
+        const alltags=await Categories.find({},{name:true,description:true});
 
            return res.status(200).json({
             success:false,
