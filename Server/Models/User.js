@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
-const { resetPasswordToken } = require("../Controllers/Resetpassword");
 
 const userSchema = new mongoose.Schema({
   firstName: {   type: String, required: true ,trim:true },
     lastName: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true }, 
-  mobile: { type: String, required: true, unique: true },           
+  email: { type: String, required: true, unique: true },
+  mobile: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     accountType: { type: String, enum: [ "Adamin" ,"student", "teacher"], default: "student" },
     additionaldetails:{
@@ -16,8 +15,8 @@ const userSchema = new mongoose.Schema({
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course"  }],
     courseprogress :{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "CourseProgress" // Reference to CourseProgress model  
-        
+        ref: "CourseProgress" // Reference to CourseProgress model
+
     },
     profilePicture: { type: String, default: "" },
     token:

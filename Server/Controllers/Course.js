@@ -2,7 +2,7 @@ const Course = require("../Models/Course");
 const Section = require("../Models/Section");
 const Tag = require("../Models/Tag");
 const User = require("../Models/User");
-const { uploadOptimizedImage } = require("../utils/imageUploader");
+const { uploadOptimizedImage } = require("../utlis/Imageuploader");
 
 /**
  * @route POST /api/courses/create

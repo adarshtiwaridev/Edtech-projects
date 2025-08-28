@@ -163,3 +163,55 @@ exports.getAllUserDetails = async (req, res) => {
         });
     }
 }
+// ADD THIS: get enrolled courses
+exports.getEnrolledCourses = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const userDetails = await user.findById(userId).populate("courses").exec();
+        if (!userDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Enrolled courses fetched successfully",
+            data: userDetails.courses,
+        });
+    } catch (error) {
+        console.error("Error fetching enrolled courses:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong while fetching enrolled courses",
+            error: error.message,
+        });
+    }
+};
+
+// ADD THIS: update display picture
+// ADD THIS: get enrolled courses
+exports.getEnrolledCourses = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const userDetails = await user.findById(userId).populate("courses").exec();
+        if (!userDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Enrolled courses fetched successfully",
+            data: userDetails.courses,
+        });
+    } catch (error) {
+        console.error("Error fetching enrolled courses:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong while fetching enrolled courses",
+            error: error.message,
+        });
+    }
+};
