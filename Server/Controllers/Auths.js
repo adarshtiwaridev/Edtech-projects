@@ -8,11 +8,11 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 
-// ------------------ SEND OTP ------------------
 exports.sendotp = async (req, res) => {
   try {
     const { email } = req.body;
 
+    // check if user already exists
     const checkUserPresent = await User.findOne({ email });
     if (checkUserPresent) {
       return res.status(401).json({
@@ -21,18 +21,22 @@ exports.sendotp = async (req, res) => {
       });
     }
 
+    // generate 6-digit OTP
     const generateOTP = customAlphabet("1234567890", 6);
     const otp = generateOTP();
     console.log("Generated OTP:", otp);
 
+    // save OTP to DB
     const otpBody = await Otp.create({ email, otp });
     console.log("Otp saved:", otpBody);
 
+    // ⚠️ in production, send OTP via email/SMS, don’t return in response
     return res.status(200).json({
       success: true,
       message: "OTP sent successfully.",
-      otp, // ⚠️ don’t send in production
+      otp, 
     });
+
   } catch (error) {
     console.error("Error sending OTP:", error);
     return res.status(500).json({
@@ -41,9 +45,6 @@ exports.sendotp = async (req, res) => {
     });
   }
 };
-
-
-// ------------------ SIGNUP ------------------
 exports.signup = async (req, res) => {
   try {
     const {
@@ -57,33 +58,37 @@ exports.signup = async (req, res) => {
       otp,
     } = req.body;
 
-    // if (!firstName || !lastName || !email || !mobile || !password || !confirmPassword  ) {
-    //   return res.status(403).json({ success: false, message: "All inputs are required." });
-    // }
-
+    // check password match
     if (password !== confirmPassword) {
       return res.status(403).json({ success: false, message: "Passwords do not match." });
     }
 
+    // check if user already exists
     const existUser = await User.findOne({ email });
     if (existUser) {
       return res.status(400).json({ success: false, message: "User already exists." });
     }
 
+    // get the most recent OTP for this email
     const recentOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
+    // console.log("Recent OTP found:", recentOtp);
+
     if (!recentOtp || otp !== recentOtp.otp) {
       return res.status(400).json({ success: false, message: "Invalid or expired OTP." });
     }
 
+    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // create profile document
     const profileDetails = await Profile.create({
-      gender: null || "male",
-      dateOfBirth: null || new Date(),
-      address: null || "",
-      contactNumber: null || "",
+      gender: "Not Specified",
+      dateOfBirth: null,
+      address: "",
+      contactNumber: "",
     });
 
+    // create user
     const user = await User.create({
       firstName,
       lastName,
@@ -92,10 +97,18 @@ exports.signup = async (req, res) => {
       password: hashedPassword,
       accountType,
       additionaldetails: profileDetails._id,
-      image: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${firstName} ${lastName}`,
+      // ⚠️ don't pass profilePicture here so default in schema applies
     });
 
-    return res.status(201).json({ success: true, message: "User registered successfully!", user });
+    // remove password before sending response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return res.status(201).json({
+      success: true,
+      message: "User registered successfully!",
+      user: userResponse,
+    });
   } catch (error) {
     console.error("Error during signup:", error);
     return res.status(500).json({ success: false, message: "Signup failed." });
@@ -110,11 +123,18 @@ exports.login = async (req, res) => {
     if (!email || !password) {
       return res.status(403).json({ success: false, message: "All fields are required." });
     }
+    const allusers = await User.find();
+    console.log("All users:", allusers);
+   const emailClean = email.trim().toLowerCase();
 
-    const user = await User.findOne({ email }).populate("additionaldetails");
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not registered." });
-    }
+const user = await User.findOne({ email: emailClean }).populate("additionaldetails");
+
+if (!user) {
+  console.log("Email searched:", emailClean);
+  console.log("Available users:", await User.find({}, "email")); // only show emails
+  return res.status(404).json({ success: false, message: "User not registered." });
+}
+
 
     if (await bcrypt.compare(password, user.password)) {
       const payload = { email: user.email, id: user._id, role: user.accountType };

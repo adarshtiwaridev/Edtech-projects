@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     accountType: { type: String, enum: [ "Admin" ,"Student", "Teacher"], default: "Student" },
     additionaldetails:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "profile" ,// Reference to AdditionalDetails model
+        ref: "Profile" ,// Reference to AdditionalDetails model
         // required: true
     },
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course"  }],
@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
         ref: "CourseProgress" // Reference to CourseProgress model
 
     },
-    profilePicture: { type: String, default: "https://static.vecteezy.com/system/resources/previews/024/183/525/non_2x/avatar-of-a-man-portrait-of-a-young-guy-illustration-of-male-character-in-modern-color-style-vector.jpg" },
+    profilePicture: { type: String, default: "https://static.vecteezy.com/system/resources/previews/024/183/525/non_2x/avatar-of-a-man-portrait-of-a-young-guy-illustration-of-male-character-in-modern-color-style-vector.jpg", set: v => v === "" ? "https://static.vecteezy.com/system/resources/previews/024/183/525/non_2x/avatar-of-a-man-portrait-of-a-young-guy-illustration-of-male-character-in-modern-color-style-vector.jpg" : v },
     token:
     {
       type:String,
@@ -28,6 +28,6 @@ type:Date,
     },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
-});
+}, { collection: "users" });
 const User = mongoose.model("User", userSchema);
 module.exports = User;

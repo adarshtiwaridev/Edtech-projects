@@ -16,8 +16,17 @@ dotenv.config();
 // Init express
 const app = express();
 
-// Connect Database
-connectDB();
+// Connect Database then start server
+(async () => {
+  try {
+    await connectDB();
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  } catch (err) {
+    console.error("Server not started due to DB error:", err?.message || err);
+    process.exit(1);
+  }
+})();
 
 // Middleware
 app.use(express.json());
@@ -50,6 +59,4 @@ app.get("/", (req, res) => {
   res.status(200).json({ success: true, message: "Server is running correctlt " });
 });
 
-// Activate the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// Activate the server (moved to after DB connects)
