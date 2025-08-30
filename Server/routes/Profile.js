@@ -13,7 +13,7 @@ const {
   updateDisplayPicture,
 } = require("../Controllers/Profile");
 // Define routes and attach middleware and controllers
-router.delete("/deleteProfile", auth, deleteAccount);
+router.delete("/deleteAccount", auth, deleteAccount);
 router.put("/updateProfile", auth, updateProfile);
 router.get("/getUserDetails", auth, getUserDetails);
 router.get("/getAllUserDetails", auth, getAllUserDetails);

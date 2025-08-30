@@ -49,10 +49,10 @@ router.put("/changePassword", auth, changePassword || ((req, res) => res.status(
 // ********************************************************************************************************
 
 // Route for generating a reset password token
-router.post("/reset-password-token", resetPasswordToken || ((req, res) => res.status(500).json({ error: "resetPasswordToken handler missing" })))
+router.post("/resetPasswordToken", resetPasswordToken || ((req, res) => res.status(500).json({ error: "resetPasswordToken handler missing" })))
 
 // Route for resetting user's password after verification
-router.post("/reset-password", resetPassword || ((req, res) => res.status(500).json({ error: "resetPassword handler missing" })))
+router.post("/resetPassword", resetPassword || ((req, res) => res.status(500).json({ error: "resetPassword handler missing" })))
 
 // Export the router for use in the main application
 module.exports = router

@@ -1,11 +1,23 @@
 const profile = require("../Models/Profile");
 const user = require("../Models/User");
 const course = require("../Models/Course");
+const cloudinary = require("cloudinary").v2;
 
-// Update profile
+require("dotenv").config();
+
+// Configure Cloudinary using environment variables
+cloudinary.config({
+  cloud_name: process.env.cloud_name,
+  api_key: process.env.api_Key,
+  api_secret: process.env.api_secret,
+});
+
+// ==========================
+// Update Profile
+// ==========================
 exports.updateProfile = async (req, res) => {
   try {
-    const { dateOfBirth = "", contactNumber, gender, about = "" } = req.body;
+    const { dateOfBirth = "", contactNumber, gender, address = "" } = req.body;
     const id = req.user.id;
 
     if (!dateOfBirth || !contactNumber || !gender) {
@@ -33,7 +45,7 @@ exports.updateProfile = async (req, res) => {
     profileDetails.dateOfBirth = dateOfBirth;
     profileDetails.contactNumber = contactNumber;
     profileDetails.gender = gender;
-    profileDetails.about = about;
+    profileDetails.address = address;
 
     await profileDetails.save();
 
@@ -43,7 +55,7 @@ exports.updateProfile = async (req, res) => {
       data: profileDetails,
     });
   } catch (error) {
-    console.error("Error updating profile:", error.message);
+    console.error("Error updating profile:", error);
     return res.status(500).json({
       success: false,
       message: "Something went wrong while updating the profile",
@@ -52,9 +64,9 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-const User = require("../models/User"); // make sure path is correct
-
-// Update display picture
+// ==========================
+// Update Display Picture
+// ==========================
 exports.updateDisplayPicture = async (req, res) => {
   try {
     const displayPicture = req.files?.displayPicture;
@@ -67,13 +79,18 @@ exports.updateDisplayPicture = async (req, res) => {
       });
     }
 
-    // TODO: Upload displayPicture to Cloudinary / storage and get URL
-    // Example: const uploadResult = await cloudinary.uploader.upload(displayPicture.tempFilePath);
-    // const profilePicUrl = uploadResult.secure_url;
+    // Upload to Cloudinary
+    const uploadResult = await cloudinary.uploader.upload(
+      displayPicture.tempFilePath,
+      { folder: "user_profile_pictures" }
+    );
 
-    const userDetails = await User.findByIdAndUpdate(
+    const profilePicUrl = uploadResult.secure_url;
+
+    // Update user with Cloudinary URL
+    const userDetails = await user.findByIdAndUpdate(
       userId,
-      { profilePicture: displayPicture.name }, // replace with profilePicUrl after cloud upload
+      { profilePicture: profilePicUrl },
       { new: true }
     );
 
@@ -83,7 +100,7 @@ exports.updateDisplayPicture = async (req, res) => {
       data: userDetails,
     });
   } catch (error) {
-    console.error("Error updating display picture:", error.message);
+    console.error("Error updating display picture:", error);
     return res.status(500).json({
       success: false,
       message: "Something went wrong while updating display picture",
@@ -92,7 +109,9 @@ exports.updateDisplayPicture = async (req, res) => {
   }
 };
 
-// Delete account
+// ==========================
+// Delete Account
+// ==========================
 exports.deleteAccount = async (req, res) => {
   try {
     const id = req.user.id;
@@ -106,8 +125,14 @@ exports.deleteAccount = async (req, res) => {
     }
 
     const profileId = userDetails.additionalDetails;
+
+    // Delete profile
     await profile.findByIdAndDelete(profileId);
+
+    // Delete user
     await user.findByIdAndDelete(id);
+
+    // Delete courses created by the user
     await course.deleteMany({ createdBy: id });
 
     return res.status(200).json({
@@ -115,7 +140,7 @@ exports.deleteAccount = async (req, res) => {
       message: "Account deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting account:", error.message);
+    console.error("Error deleting account:", error);
     return res.status(500).json({
       success: false,
       message: "Something went wrong while deleting the account",
@@ -124,7 +149,9 @@ exports.deleteAccount = async (req, res) => {
   }
 };
 
-// Get user details
+// ==========================
+// Get User Details
+// ==========================
 exports.getUserDetails = async (req, res) => {
   try {
     const id = req.user.id;
@@ -140,7 +167,7 @@ exports.getUserDetails = async (req, res) => {
       data: userDetails,
     });
   } catch (error) {
-    console.error("Error fetching profile details:", error.message);
+    console.error("Error fetching profile details:", error);
     return res.status(500).json({
       success: false,
       message: "Something went wrong while fetching the profile details",
@@ -149,11 +176,13 @@ exports.getUserDetails = async (req, res) => {
   }
 };
 
-// Get all user details
+// ==========================
+// Get All User Details
+// ==========================
 exports.getAllUserDetails = async (req, res) => {
   try {
     const users = await user.find().populate("additionalDetails").exec();
-    if (!users) {
+    if (!users || users.length === 0) {
       return res.status(404).json({
         success: false,
         message: "No users found",
@@ -166,7 +195,7 @@ exports.getAllUserDetails = async (req, res) => {
       data: users,
     });
   } catch (error) {
-    console.error("Error fetching all user details:", error.message);
+    console.error("Error fetching all user details:", error);
     return res.status(500).json({
       success: false,
       message: "Something went wrong while fetching all user details",
@@ -175,7 +204,9 @@ exports.getAllUserDetails = async (req, res) => {
   }
 };
 
-// Get enrolled courses
+// ==========================
+// Get Enrolled Courses
+// ==========================
 exports.getEnrolledCourses = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -194,7 +225,7 @@ exports.getEnrolledCourses = async (req, res) => {
       data: userDetails.courses,
     });
   } catch (error) {
-    console.error("Error fetching enrolled courses:", error.message);
+    console.error("Error fetching enrolled courses:", error);
     return res.status(500).json({
       success: false,
       message: "Something went wrong while fetching enrolled courses",

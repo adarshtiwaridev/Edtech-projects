@@ -4,7 +4,7 @@ const dotenv = require("dotenv");
 const userRoutes = require("./routes/User"); // Import user routes
 const profileRoutes = require("./routes/Profile"); // Import profile routes
 // const paymentRoutes = require("./routes/Payment"); // Import payment routes
-// const courseRoutes = require("./routes/Course"); // Import course routes
+const courseRoutes = require("./routes/Course"); // Import course routes
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const cloudconnect = require("./config/cloudinary");
@@ -52,7 +52,7 @@ cloudconnect();
 app.use("/api/users", userRoutes);
 app.use("/api/profiles", profileRoutes);
 // app.use("/api/payments", paymentRoutes);
-// app.use("/api/courses", courseRoutes);
+app.use("/api/Courses", courseRoutes);
 
 // Simple test route
 app.get("/", (req, res) => {

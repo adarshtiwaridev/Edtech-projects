@@ -5,7 +5,7 @@ const profileSchema = new mongoose.Schema({
    gender: {
     type: String,
 
-    enum: ["male" ,"female","Not Specified"],
+    enum: ["Male" ,"Female","Not Specified"],
     default: ""
     },
     dateOfBirth: { type: Date,  trim:true },

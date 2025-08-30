@@ -9,35 +9,35 @@ const {
   createCourse,
   getAllCourses,
   getCourseDetails,
-} = require("../controllers/Course")
+} = require("../Controllers/Course")
 
 // Categories Controllers Import
 const {
   showAllCategories,
   createCategory,
   categoryPageDetails,
-} = require("../controllers/Category")
+} = require("../Controllers/Category")
 
 // Sections Controllers Import
 const {
   createSection,
   updateSection,
   deleteSection,
-} = require("../controllers/Sections")
+} = require("../Controllers/Sections")
 
 // Sub-Sections Controllers Import
 const {
   createSubSection,
   updateSubSection,
   deleteSubSection,
-} = require("../controllers/Subsection")
+} = require("../Controllers/Subsection")
 
 // Rating Controllers Import
 const {
   createRatingAndReviews,
   getAverageRating,
   getAllRatings, // ✅ correct import
-} = require("../Controllers/RatingAndReviews")
+} = require("../controllers/RatingAndReviews") // 🔥 fixed path (lowercase 'controllers')
 
 // Importing Middlewares
 const { auth, instructor, student, admin } = require("../middleware/Auth")
@@ -77,6 +77,5 @@ router.post("/getCategoryPageDetails", categoryPageDetails)
 // ********************************************************************************************************
 router.post("/createRating", auth, student, createRatingAndReviews)
 router.get("/getAverageRating", getAverageRating)
-router.get("/getReviews", getAllRatings) // ✅ fixed function name
 
 module.exports = router
