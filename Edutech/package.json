@@ -1,28 +1,20 @@
 {
-  "name": "react-tailwind-css-starter-pack",
+  "name": "athani-softech",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "concurrently": "^9.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/thepranaygupta/react-tailwind-css-starter-pack.git"
-  },
-  "author": "Pranay Gupta",
-  "bugs": {
-    "url": "https://github.com/thepranaygupta/react-tailwind-css-starter-pack/issues"
-  },
+  "author": "Athani Softech",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "eject": "react-scripts eject",
-    "server": "cd server && npm run dev",
-    "dev": "concurrently -n \"client,server\" -c \"bgBlue,bgYellow\" \"npm run server\" \"npm start\""
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 3000",
+    "server": "cd Server && npm run dev",
+    "dev": "concurrently -n \"client,server\" -c \"bgBlue,bgYellow\" \"vite\" \"npm run server\""
   },
   "eslintConfig": {
     "extends": [
@@ -43,6 +35,9 @@
     ]
   },
   "devDependencies": {
-    "tailwindcss": "^3.2.7"
+    "@vitejs/plugin-react": "^4.7.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.2.7",
+    "vite": "^5.4.19"
   }
 }

@@ -5,15 +5,17 @@ const dotenv = require("dotenv");
 // Load environment variables from .env file
 dotenv.config();
 
-// MongoDB connection URL (from .env file)
-const MONGO_URI = process.env.MONGO_URI;
+// MongoDB connection URL (from .env file) with sensible local fallback
+const MONGO_URI =
+  (process.env.MONGO_URI && process.env.MONGO_URI.trim()) ||
+  "mongodb://127.0.0.1:27017/edutech";
 
 // Function to connect MongoDB
 const connectDB = async () => {
   try {
     if (!MONGO_URI || typeof MONGO_URI !== "string" || MONGO_URI.trim().length === 0) {
-      console.error("❌ MONGO_URI is missing. Add MONGO_URI to your .env file.");
-      throw new Error("Missing MONGO_URI env var");
+      console.error("❌ Mongo connection string is invalid.");
+      throw new Error("Invalid Mongo connection string");
     }
 
     // Optional: quiet mongoose strictQuery deprecation warnings

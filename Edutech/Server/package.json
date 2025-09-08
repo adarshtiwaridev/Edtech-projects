@@ -24,6 +24,6 @@
     "mongoose": "^8.17.1",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
-    "otp-genrator": "^1.0.1"
+    "otp-generator": "^4.0.1"
   }
 }

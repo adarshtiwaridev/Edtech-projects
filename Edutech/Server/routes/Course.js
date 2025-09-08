@@ -30,14 +30,14 @@ const {
   createSubSection,
   updateSubSection,
   deleteSubSection,
-} = require("../Controllers/Subsection")
+} = require("../Controllers/SubSection")
 
 // Rating Controllers Import
 const {
   createRatingAndReviews,
   getAverageRating,
   getAllRatings, // ✅ correct import
-} = require("../controllers/RatingAndReviews") // 🔥 fixed path (lowercase 'controllers')
+} = require("../Controllers/RatingAndReviews")
 
 // Importing Middlewares
 const { auth, instructor, student, admin } = require("../middleware/Auth")
