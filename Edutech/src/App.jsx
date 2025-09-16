@@ -7,6 +7,7 @@ import Navbaar from "./Components/Navbaar";
 import Footer from "./Components/Footer";
 import Courses from "./Components/courses";
 import Login from "./Components/Login";
+import Signup from "./Components/Signup";
 function App() {
   return (
 
@@ -21,10 +22,11 @@ function App() {
         <Route path="/contact" element={<Contact />} />
 
       </Routes>
+      <Signup/>
       {/* <Login/>   */}
       {/* <Courses/> */}
       <Footer/>
-      {/* <Login/> */}
+      <Login/>
     </div>
 
   )

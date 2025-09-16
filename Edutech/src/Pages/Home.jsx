@@ -257,7 +257,7 @@ const categories = [
                 duration: '32 hours',
                 price: '$149.99',
                 originalPrice: '$249.99',
-                image: 'https://source.unsplash.com/random/600x400/?web,development',
+                image: '',
                 isBestseller: true,
                 features: ['Project-based learning', 'Certificate included', 'Lifetime access']
               },

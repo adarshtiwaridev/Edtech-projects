@@ -172,8 +172,9 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center">
             <p className="text-gray-400 text-sm">
-              © Copyright reserved by Edurel.com
+              © Copyright reserved by Athanni-Softtech.com
             </p>
+            <a src=""  rel='noopener norefer'></a>
           </div>
         </div>
       </div>
