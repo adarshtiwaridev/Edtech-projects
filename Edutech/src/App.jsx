@@ -6,8 +6,10 @@ import About from "./Pages/About";
 import Navbaar from "./Components/Navbaar";
 import Footer from "./Components/Footer";
 import Courses from "./Components/courses";
-import Login from "./Components/Login";
-import Signup from "./Components/Signup";
+import Blogs from "./Components/blogs";
+import Quiz from "./Pages/Quiz";
+import AdminQuiz from "./Pages/AdminQuiz";
+
 function App() {
   return (
 
@@ -20,13 +22,16 @@ function App() {
         <Route path="/Login" element={<login/>}/>
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/blogs" element={<Blogs />} />
+        <Route path="/quiz" element={<Quiz />} />
+        <Route path="/admin-quiz" element={<AdminQuiz />} />
 
       </Routes>
-      <Signup/>
+      {/* <Signup/> */}
       {/* <Login/>   */}
       {/* <Courses/> */}
       <Footer/>
-      <Login/>
+      {/* <Login/> */}
     </div>
 
   )

@@ -49,34 +49,49 @@ const About = () => {
 
   return (
     <div className="font-serif">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-20">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-striped-brick.png')]">
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div 
-            className="text-center py-20"
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-          >
-            <motion.h1 
-              className="text-5xl md:text-6xl font-bold mb-6"
-              variants={fadeInUp}
-            >
-              Transforming Education, <span className="text-blue-300">Empowering Futures</span>
-            </motion.h1>
-            <motion.p 
-              className="text-xl md:text-2xl text-blue-100 max-w-4xl mx-auto"
-              variants={fadeInUp}
-            >
-              We believe in making quality education accessible to everyone, everywhere.
-            </motion.p>
-          </motion.div>
-        </div>
-      </section>
+    {/* Hero Section */}
+<section className="relative text-white py-20">
+  {/* Background Video */}
+  <video
+    autoPlay
+    loop
+    muted
+    playsInline
+    className="absolute top-0 left-0 w-full h-full object-cover z-0"
+   style={{ filter: 'brightness(1.6) blur(3px)' }}
+
+  >
+    <source src="/videos/event-04.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+
+  {/* Optional Overlay for readability */}
+  <div className="absolute inset-0 bg-black opacity-30 z-0"></div>
+
+  {/* Content */}
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <motion.div
+      className="text-center py-20"
+      initial="hidden"
+      animate="visible"
+      variants={staggerContainer}
+    >
+      <motion.h1
+        className="text-5xl md:text-6xl font-bold mb-6"
+        variants={fadeInUp}
+      >
+        Transforming Education, <span className="text-blue-300">Empowering Futures</span>
+      </motion.h1>
+      <motion.p
+        className="text-xl md:text-2xl text-blue-100 max-w-4xl mx-auto"
+        variants={fadeInUp}
+      >
+        We believe in making quality education accessible to everyone, everywhere.
+      </motion.p>
+    </motion.div>
+  </div>
+</section>
+
 
       {/* Mission & Vision */}
       <section className="py-20 bg-white">
