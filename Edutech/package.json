@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@heroui/react": "^2.8.4",
+    "@heroui/react": "^2.8.5",
     "@redux-ts-starter-kit/slice": "^3.0.3-alpha.0",
     "@reduxjs/toolkit": "^2.9.0",
     "concurrently": "^9.2.1",

@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import login from "../Pages/Login";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaSearch,
   FaShoppingCart,
@@ -23,17 +21,28 @@ import {
   DropdownItem,
   Button,
 } from "@heroui/react";
-
+import { useSelector } from "react-redux";
+import toast, { Toaster } from "react-hot-toast";
+import ProfileDropdown from "./Auth/ProfileDropdown";
 const Navbaar = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleNavigation = (path) => {
-    navigate("/login");
-    setIsOpen(false); // Close mobile menu on navigation
-  }
+const { token } = useSelector((state) => state.auth || {});
+const { user } = useSelector((state) => state.profile || {});
+const { totalItems } = useSelector((state) => state.cart || {});
 
-  // ✅ Centralized nav items
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleNavigation = (path) => {
+    if (!token && path !== "/login" && path !== "/signup") {
+      toast.error("Please login to continue!");
+      navigate("/login");
+    } else {
+      navigate(path);
+    }
+    setIsOpen(false);
+  };
+
   const navItems = [
     { label: "Home", path: "/", icon: <FaHome /> },
     {
@@ -50,9 +59,8 @@ const Navbaar = () => {
     { label: "Shop", path: "/shop", icon: <FaStore /> },
     { label: "About", path: "/about", icon: <FaInfoCircle /> },
     { label: "Contact", path: "/contact", icon: <FaEnvelope /> },
-    { label: "Blogs", path: "/blogs", icon: <FaEnvelope /> },
+    { label: "Blogs", path: "/blogs", icon: <FaFileAlt /> },
     { label: "Quiz", path: "/quiz", icon: <FaGraduationCap /> },
-    // { label: "Admin Quiz", path: "/admin-quiz", icon: <FaUser /> },
   ];
 
   return (
@@ -94,7 +102,7 @@ const Navbaar = () => {
                       {item.dropdown.map((sub, idx) => (
                         <DropdownItem
                           key={idx}
-                          href={sub.path}
+                          onClick={() => handleNavigation(sub.path)}
                           className="hover:bg-blue-50 rounded-md px-3 py-2"
                         >
                           {sub.label}
@@ -118,26 +126,44 @@ const Navbaar = () => {
 
           {/* Right Section */}
           <div className="hidden md:flex items-center gap-4">
-            <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
-              <FaSearch className="w-5 h-5" />
-            </button>
+            {/* Cart for non-instructor users */}
+            {user && user.accountType !== "Instructor" && token && (
+              <Link to="/dashboard/cart" className="relative">
+                <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg relative">
+                  <FaShoppingCart className="w-5 h-5" />
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {totalItems || 0}
+                  </span>
+                </button>
+              </Link>
+            )}
 
-            <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg relative">
-              <FaShoppingCart className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                0
-              </span>
-            </button>
+            {/* Login & Signup Buttons */}
+            {!token && (
+              <>
+                <button
+                  onClick={() => handleNavigation("/login")}
+                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 font-medium"
+                >
+                  <FaUser className="w-4 h-4" />
+                  <span>Login</span>
+                </button>
 
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 font-medium">
-              <FaUser className="w-4 h-4" />
-            </button>
+                <Link to="/signup">
+                  <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 flex items-center space-x-2 transition">
+                    <FaSignInAlt className="w-4 h-4" />
+                    <span>Try for Free</span>
+                  </button>
+                </Link>
+              </>
+            )}
 
-            <button    onClick={() => handleNavigation("/login")}  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 flex items-center space-x-2 transition">
-              <FaSignInAlt className="w-4 h-4" />
-              <span>Try for Free</span>
-            </button>
-          </div>
+            {/* User Dropdown */}
+            {/* {token && user && (
+             
+            )
+            } */}
+         
 
           {/* Hamburger Button */}
           <div className="md:hidden flex items-center">
@@ -149,6 +175,7 @@ const Navbaar = () => {
             </button>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Mobile Menu */}
@@ -163,6 +190,7 @@ const Navbaar = () => {
                     key={idx}
                     to={sub.path}
                     className="block text-gray-600 hover:text-blue-600 pl-4"
+                    onClick={() => setIsOpen(false)}
                   >
                     {sub.label}
                   </Link>
@@ -173,22 +201,26 @@ const Navbaar = () => {
                 key={index}
                 to={item.path}
                 className="block text-gray-800 font-medium hover:text-blue-600 transition duration-200"
+                onClick={() => setIsOpen(false)}
               >
                 {item.label}
               </Link>
             )
           )}
-   
 
-
-          <div className="pt-4 border-t"  >
-            <button  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 flex items-center justify-center space-x-2 transition"  onClick={() => handleNavigation("/login")}>
+          <div className="pt-4 border-t">
+            <button
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 flex items-center justify-center space-x-2 transition"
+              onClick={() => handleNavigation("/signup")}
+            >
               <FaSignInAlt className="w-4 h-4" />
-              <span >Try for Free</span>
+              <span>Try for Free</span>
             </button>
           </div>
         </div>
       )}
+
+      <Toaster position="top-center" reverseOrder={false} />
     </nav>
   );
 };
