@@ -1,0 +1,105 @@
+⚙️ Main Features (Perfect for Resume 💼)
+
+User Authentication
+
+Signup/Login (Email + Password or Google)
+
+Role: Student / Instructor
+
+Course System
+
+Add / View / Delete Courses (Instructor)
+
+Enroll / Continue Course (Student)
+
+Category-wise filter (Frontend-based)
+
+Video Player Integration
+
+Course lessons with next/previous buttons
+
+Progress bar (localStorage or DB-based)
+
+AI Learning Assistant (Highlight Feature 🌟)
+
+Simple chatbot using OpenAI API
+
+Helps students summarize videos or answer doubts
+
+Progress Tracker
+
+Shows completion % for each course
+
+Dynamic “Completed / In Progress” status
+
+Certificate Generator (Bonus Point)
+
+Auto-generate certificate after 100% completion
+
+Download as PDF (with user + course name)
+
+Responsive & Clean UI
+
+Tailwind CSS + Shadcn components
+
+Light/Dark mode toggle
+
+Dashboard
+
+Student: Enrolled courses, progress
+
+Instructor: Uploaded courses, total enrollments
+
+
+⚙️ Main Features (Perfect for Resume 💼)
+
+User Authentication
+
+Signup/Login (Email + Password or Google)
+
+Role: Student / Instructor
+
+Course System
+
+Add / View / Delete Courses (Instructor)
+
+Enroll / Continue Course (Student)
+
+Category-wise filter (Frontend-based)
+
+Video Player Integration
+
+Course lessons with next/previous buttons
+
+Progress bar (localStorage or DB-based)
+
+AI Learning Assistant (Highlight Feature 🌟)
+
+Simple chatbot using OpenAI API
+
+Helps students summarize videos or answer doubts
+
+Progress Tracker
+
+Shows completion % for each course
+
+Dynamic “Completed / In Progress” status
+
+Certificate Generator (Bonus Point)
+
+Auto-generate certificate after 100% completion
+
+Download as PDF (with user + course name)
+
+Responsive & Clean UI
+
+Tailwind CSS + Shadcn components
+
+Light/Dark mode toggle
+
+Dashboard //streak maintain like github aur lingest streak aur total active date 
+Ai chatboat ,interview preper with quiz
+
+Student: Enrolled courses, progress
+
+Instructor: Uploaded courses, total enrollments

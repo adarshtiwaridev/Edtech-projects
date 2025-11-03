@@ -24,12 +24,13 @@ import {
 import { useSelector } from "react-redux";
 import toast, { Toaster } from "react-hot-toast";
 import ProfileDropdown from "./Auth/ProfileDropdown";
+
 const Navbaar = () => {
   const navigate = useNavigate();
 
-const { token } = useSelector((state) => state.auth || {});
-const { user } = useSelector((state) => state.profile || {});
-const { totalItems } = useSelector((state) => state.cart || {});
+  const { token } = useSelector((state) => state.auth || {});
+  const { user } = useSelector((state) => state.profile || {});
+  const { totalItems } = useSelector((state) => state.cart || {});
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -126,7 +127,7 @@ const { totalItems } = useSelector((state) => state.cart || {});
 
           {/* Right Section */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Cart for non-instructor users */}
+            {/* Cart */}
             {user && user.accountType !== "Instructor" && token && (
               <Link to="/dashboard/cart" className="relative">
                 <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg relative">
@@ -138,32 +139,32 @@ const { totalItems } = useSelector((state) => state.cart || {});
               </Link>
             )}
 
-            {/* Login & Signup Buttons */}
-            {!token && (
+            {/* Auth Buttons */}
+            {!token ? (
               <>
                 <button
                   onClick={() => handleNavigation("/login")}
                   className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 font-medium"
                 >
                   <FaUser className="w-4 h-4" />
-                  <span>Login</span>
+                  <span className="text-black">Login</span>
                 </button>
+  
 
+
+  
                 <Link to="/signup">
                   <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 flex items-center space-x-2 transition">
                     <FaSignInAlt className="w-4 h-4" />
                     <span>Try for Free</span>
                   </button>
                 </Link>
-              </>
-            )}
 
-            {/* User Dropdown */}
-            {/* {token && user && (
-             
-            )
-            } */}
-         
+              </>
+            ) : (
+              <ProfileDropdown />
+            )}
+          </div>
 
           {/* Hamburger Button */}
           <div className="md:hidden flex items-center">
@@ -175,7 +176,6 @@ const { totalItems } = useSelector((state) => state.cart || {});
             </button>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Mobile Menu */}
@@ -209,13 +209,17 @@ const { totalItems } = useSelector((state) => state.cart || {});
           )}
 
           <div className="pt-4 border-t">
-            <button
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 flex items-center justify-center space-x-2 transition"
-              onClick={() => handleNavigation("/signup")}
-            >
-              <FaSignInAlt className="w-4 h-4" />
-              <span>Try for Free</span>
-            </button>
+            {!token ? (
+              <button
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 flex items-center justify-center space-x-2 transition"
+                onClick={() => handleNavigation("/signup")}
+              >
+                <FaSignInAlt className="w-4 h-4" />
+                <span>Try for Free</span>
+              </button>
+            ) : (
+              <ProfileDropdown />
+            )}
           </div>
         </div>
       )}
