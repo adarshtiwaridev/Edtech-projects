@@ -49,22 +49,44 @@ const Signup = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      console.log('Form submitted:', formData);
-      // API call goes here
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        mobile: '',
-        password: '',
-        confirmPassword: '',
-        accountType: 'Student'
-      });
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validateForm()) return;
+
+  try {
+    const res = await fetch("/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // Backend error message
+      setErrors({ apiError: data.message || "Signup failed" });
+      return;
     }
-  };
+    // Reset
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      mobile: "",
+      password: "",
+      confirmPassword: "",
+      accountType: "Student"
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    setErrors({ apiError: "Server not responding. Try again later." });
+  }
+};
+
 
   return (
     <div
