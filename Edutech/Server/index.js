@@ -1,10 +1,12 @@
 const express = require("express");
-const connectDB = require("./config/database"); // Import DB file
+const path = require("path");
+const connectDB = require("./config/database");
 const dotenv = require("dotenv");
-const userRoutes = require("./routes/User"); // Import user routes
-const profileRoutes = require("./routes/Profile"); // Import profile routes
-// const paymentRoutes = require("./routes/Payment"); // Import payment routes
-const courseRoutes = require("./routes/Course"); // Import course routes
+
+const userRoutes = require("./routes/User");
+const profileRoutes = require("./routes/Profile");
+const courseRoutes = require("./routes/Course");
+
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const cloudconnect = require("./config/cloudinary");
@@ -16,24 +18,13 @@ dotenv.config();
 // Init express
 const app = express();
 
-// Connect Database then start server
-(async () => {
-  try {
-    await connectDB();
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  } catch (err) {
-    console.error("Server not started due to DB error:", err?.message || err);
-    process.exit(1);
-  }
-})();
-
-// Middleware
+/* ===================== MIDDLEWARE ===================== */
 app.use(express.json());
 app.use(cookieParser());
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5000"],
+    origin: true, // allow same-origin in production
     credentials: true,
   })
 );
@@ -45,18 +36,37 @@ app.use(
   })
 );
 
-// Cloudinary setup
+// Cloudinary
 cloudconnect();
 
-// Define Routes
+/* ===================== API ROUTES ===================== */
 app.use("/api/users", userRoutes);
 app.use("/api/profiles", profileRoutes);
-// app.use("/api/payments", paymentRoutes);
-app.use("/api/Courses", courseRoutes);
+app.use("/api/courses", courseRoutes);
 
-// Simple test route
-app.get("/", (req, res) => {
-  res.status(200).json({ success: true, message: "Server is running correctlt " });
+/* ===================== FRONTEND (VITE BUILD) ===================== */
+const __dirnameResolved = path.resolve();
+
+// serve static files
+app.use(express.static(path.join(__dirnameResolved, "client/dist")));
+
+// react-router / vite fallback
+app.get("*", (req, res) => {
+  res.sendFile(
+    path.join(__dirnameResolved, "client/dist/index.html")
+  );
 });
 
-// Activate the server (moved to after DB connects)
+/* ===================== START SERVER ===================== */
+(async () => {
+  try {
+    await connectDB();
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () =>
+      console.log(`🚀 Server running on port ${PORT}`)
+    );
+  } catch (err) {
+    console.error("❌ Server not started due to DB error:", err);
+    process.exit(1);
+  }
+})();

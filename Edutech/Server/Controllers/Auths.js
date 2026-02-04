@@ -206,3 +206,71 @@ exports.logout = async (req, res) => {
     return res.status(500).json({ success: false, message: "Logout failed." });
   }
 }
+
+// ------------------ VERIFY OTP ------------------
+
+exports.verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // 1️⃣ Validation
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required",
+      });
+    }
+
+    // 2️⃣ Find user
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // 3️⃣ Already verified check
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "User already verified",
+      });
+    }
+
+    // 4️⃣ OTP match
+    if (user.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // 5️⃣ OTP expiry check
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired. Please resend OTP",
+      });
+    }
+
+    // 6️⃣ Mark verified
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpires = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+    });
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during OTP verification",
+    });
+  }
+};

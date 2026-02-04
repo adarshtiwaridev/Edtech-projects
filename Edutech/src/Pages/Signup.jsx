@@ -55,14 +55,16 @@ const handleSubmit = async (e) => {
   if (!validateForm()) return;
 
   try {
-    const res = await fetch("/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(formData)
-    });
+  const res = await fetch("http://localhost:5000/api/users/signup", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(formData),
+});
 
+
+     console.log(formData);
     const data = await res.json();
 
     if (!res.ok) {
@@ -70,6 +72,8 @@ const handleSubmit = async (e) => {
       setErrors({ apiError: data.message || "Signup failed" });
       return;
     }
+    // Success - navigate to OTP verification page
+    navigate("/verify-otp", { state: { email: formData.email } });
     // Reset
     setFormData({
       firstName: "",

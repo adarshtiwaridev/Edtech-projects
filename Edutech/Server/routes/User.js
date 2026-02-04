@@ -9,6 +9,7 @@ const {
   sendotp,
   logout,
   changePassword,
+  verifyOtp,
 } = require("../Controllers/Auths")
 
 const {
@@ -43,6 +44,12 @@ router.post("/sendotp", sendotp || ((req, res) => res.status(500).json({ error: 
 router.post("/logout", logout || ((req, res) => res.status(500).json({ error: "logout handler missing" })))
 // Route for Changing the password
 router.put("/changePassword", auth, changePassword || ((req, res) => res.status(500).json({ error: "changePassword handler missing" })))
+//
+//verifyOtp
+router.post("/verify-otp", verifyOtp);
+
+
+
 
 // ********************************************************************************************************
 //                                      Reset Password
