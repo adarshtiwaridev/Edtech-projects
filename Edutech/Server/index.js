@@ -12,10 +12,10 @@ const cors = require("cors");
 const cloudconnect = require("./config/cloudinary");
 const fileUpload = require("express-fileupload");
 
-// Load env
+// Load env variables
 dotenv.config();
 
-// Init express
+// Init app
 const app = express();
 
 /* ===================== MIDDLEWARE ===================== */
@@ -24,7 +24,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: true, // allow same-origin in production
+    origin: true,
     credentials: true,
   })
 );
@@ -45,16 +45,14 @@ app.use("/api/profiles", profileRoutes);
 app.use("/api/courses", courseRoutes);
 
 /* ===================== FRONTEND (VITE BUILD) ===================== */
-const __dirnameResolved = path.resolve();
+const rootDir = path.resolve(__dirname, ".."); // points to Edutech/
 
-// serve static files
-app.use(express.static(path.join(__dirnameResolved, "client/dist")));
+// Serve static frontend
+app.use(express.static(path.join(rootDir, "dist")));
 
-// react-router / vite fallback
+// SPA fallback
 app.get("*", (req, res) => {
-  res.sendFile(
-    path.join(__dirnameResolved, "client/dist/index.html")
-  );
+  res.sendFile(path.join(rootDir, "dist", "index.html"));
 });
 
 /* ===================== START SERVER ===================== */
