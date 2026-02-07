@@ -1,4 +1,4 @@
-ChatGPT said:
+
 
 Perfect bro 🔥 this one’s gonna look super professional — a complete README for your Kodemates Education – EdTech Platform, with description, features, tech stack, setup guide, and topic list formatted perfectly for GitHub 🚀
 
