@@ -1,5 +1,4 @@
 const express = require("express");
-const path = require("path");
 const connectDB = require("./config/database");
 const dotenv = require("dotenv");
 
@@ -23,13 +22,20 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+/* ===================== CORS (IMPORTANT) ===================== */
 app.use(
   cors({
-    origin: true, // same-origin on Render
+    origin: [
+      "http://localhost:5173",              // local Vite
+      "https://edtech-projects.vercel.app/"    // Vercel frontend
+    ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
 
+/* ===================== FILE UPLOAD ===================== */
 app.use(
   fileUpload({
     useTempFiles: true,
@@ -45,14 +51,9 @@ app.use("/api/users", userRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/courses", courseRoutes);
 
-/* ===================== FRONTEND (VITE BUILD) ===================== */
-// __dirname = Server/
-const rootDir = path.resolve(__dirname, ".."); // Edutech/
-
-app.use(express.static(path.join(rootDir, "dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(rootDir, "dist", "index.html"));
+/* ===================== HEALTH CHECK ===================== */
+app.get("/", (req, res) => {
+  res.send("✅ Backend is running on Render");
 });
 
 /* ===================== START SERVER ===================== */

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaPaperPlane, FaClock } from 'react-icons/fa';
+import { MapPin, Phone, Mail, Send, Clock, CheckCircle } from 'lucide-react';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -13,28 +13,14 @@ const Contact = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Form submission logic will go here
-    console.log('Form submitted:', formData);
     setIsSubmitted(true);
     setFormData({ name: '', email: '', subject: '', message: '' });
     setTimeout(() => setIsSubmitted(false), 5000);
-  };
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.2 }
-    }
   };
 
   const itemVariants = {
@@ -43,177 +29,149 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white dark:bg-black py-20 px-6 transition-colors duration-500">
       <motion.div 
         className="max-w-7xl mx-auto"
         initial="hidden"
         animate="visible"
-        variants={containerVariants}
+        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
       >
-        {/* Header */}
-        <motion.div className="text-center mb-16" variants={itemVariants}>
-          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-            <span className="block">Get In Touch</span>
+        {/* Header Section */}
+        <motion.div className="text-center mb-20" variants={itemVariants}>
+          <span className="text-blue-600 dark:text-blue-400 font-bold tracking-widest uppercase text-xs">
+            Connect With Us
+          </span>
+          <h1 className="text-5xl md:text-6xl font-bold text-black dark:text-white mt-4 tracking-tighter">
+            Let’s Build Your <span className="text-blue-600">Future.</span>
           </h1>
-          <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+          <p className="mt-6 max-w-2xl mx-auto text-gray-500 dark:text-neutral-400 text-lg">
+            Have a question or looking to partner? Reach out and our team will get back to you within 24 hours.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Form */}
-          <motion.div className="bg-white rounded-2xl h-[700px] font-serif shadow-xl p-8" variants={itemVariants}>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a message</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          
+          {/* Contact Form Section */}
+          <motion.div 
+            className="bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-blue-500/5" 
+            variants={itemVariants}
+          >
+            <h2 className="text-2xl font-bold text-black dark:text-white mb-8">Send a Message</h2>
             
-            {isSubmitted && (
+            {isSubmitted ? (
               <motion.div 
-                className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex flex-col items-center justify-center py-20 text-center"
               >
-                Thank you for your message! We'll get back to you soon.
+                <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-full mb-4">
+                  <CheckCircle className="text-blue-600 dark:text-blue-400 w-12 h-12" />
+                </div>
+                <h3 className="text-xl font-bold dark:text-white">Message Sent!</h3>
+                <p className="text-gray-500 dark:text-neutral-400">We'll be in touch very soon.</p>
               </motion.div>
-            )}
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Full Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="w-full bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Email Address</label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  id="name"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Your name"
-                />
-              </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Subject</label>
+                  <input
+                    type="text"
+                    name="subject"
+                    required
+                    value={formData.subject}
+                    onChange={handleChange}
+                    className="w-full bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                    placeholder="Inquiry about Pro Courses"
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="your.email@example.com"
-                />
-              </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Your Message</label>
+                  <textarea
+                    name="message"
+                    rows={5}
+                    required
+                    value={formData.message}
+                    onChange={handleChange}
+                    className="w-full bg-white dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white resize-none"
+                    placeholder="Tell us more about how we can help..."
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
-                <input
-                  type="text"
-                  name="subject"
-                  id="subject"
-                  required
-                  value={formData.subject}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="How can we help?"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700">Message</label>
-                <textarea
-                  name="message"
-                  id="message"
-                  rows={4}
-                  required
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Your message here..."
-                />
-              </div>
-
-              <div>
                 <motion.button
                   type="submit"
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full font-serif flex justify-center py-3 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl font-bold shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
                 >
-                  <FaPaperPlane className="mr-2 h-5 w-5" />
-                  Send Message
+                  <Send size={18} />
+                  Dispatch Message
                 </motion.button>
-              </div>
-            </form>
+              </form>
+            )}
           </motion.div>
 
-          {/* Contact Information */}
-          <motion.div className="space-y-8 font-serif" variants={itemVariants}>
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Information</h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 bg-indigo-100 p-3 rounded-full">
-                    <FaMapMarkerAlt className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">Our Location</h3>
-                    <p className="mt-1 text-gray-600">123 Education Street, Learning City, 100001</p>
-                  </div>
+          {/* Contact Info & Map Section */}
+          <motion.div className="space-y-8" variants={itemVariants}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Info Cards */}
+              {[
+                { icon: MapPin, title: "Headquarters", detail: "80 Brooklyn St, NY 11201" },
+                { icon: Phone, title: "Direct Line", detail: "+1 (555) 123-4567" },
+                { icon: Mail, title: "Support Email", detail: "help@edutech.com" },
+                { icon: Clock, title: "Opening Hours", detail: "Mon-Fri: 9AM - 6PM" },
+              ].map((item, idx) => (
+                <div key={idx} className="bg-gray-50 dark:bg-neutral-900/50 p-6 rounded-3xl border border-gray-100 dark:border-neutral-800 group hover:border-blue-500/50 transition-all">
+                  <item.icon className="text-blue-600 mb-4" size={24} />
+                  <h3 className="text-sm font-bold dark:text-white uppercase tracking-tighter">{item.title}</h3>
+                  <p className="text-gray-500 dark:text-neutral-400 text-sm mt-1">{item.detail}</p>
                 </div>
-
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 bg-indigo-100 p-3 rounded-full">
-                    <FaPhone className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">Phone Number</h3>
-                    <p className="mt-1 text-gray-600">+1 (555) 123-4567</p>
-                    <p className="text-gray-600">+1 (555) 987-6543</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 bg-indigo-100 p-3 rounded-full">
-                    <FaEnvelope className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">Email Address</h3>
-                    <p className="mt-1 text-indigo-600">info@edutech.com</p>
-                    <p className="text-indigo-600">support@edutech.com</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 bg-indigo-100 p-3 rounded-full">
-                    <FaClock className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">Working Hours</h3>
-                    <p className="mt-1 text-gray-600">Monday - Friday: 9:00 AM - 6:00 PM</p>
-                    <p className="text-gray-600">Saturday: 10:00 AM - 4:00 PM</p>
-                    <p className="text-gray-600">Sunday: Closed</p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* Google Map */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="h-64 md:h-80 w-full">
-                <iframe
-                  title="Google Map"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.21520905654!2d-73.98785368459369!3d40.74844047932799!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ0JzU0LjQiTiA3M8KwNTknMTMuNyJX!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
-              </div>
+            {/* Premium Google Map Integration */}
+            <div className="relative rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-neutral-900 h-[350px] shadow-2xl">
+              <div className="absolute inset-0 bg-blue-600/5 pointer-events-none z-10" />
+              <iframe
+                title="Google Map"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.221990125237!2d-74.00369368400567!3d40.71312937933185!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a47df06b185%3A0xc88184715dcc7ecd!2sBrooklyn%20Bridge!5e0!3m2!1sen!2sus!4v1647100000000!5m2!1sen!2sus"
+                width="100%"
+                height="100%"
+                style={{ border: 0, filter: 'grayscale(0.5) contrast(1.2) invert(0)' }} // You can toggle invert(1) for dark mode
+                allowFullScreen=""
+                loading="lazy"
+                className="dark:invert dark:opacity-80 transition-all duration-700"
+              ></iframe>
             </div>
           </motion.div>
+
         </div>
       </motion.div>
     </div>

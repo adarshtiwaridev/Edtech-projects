@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setToken, setUser } from '../slices/authSlice';
+import { toast } from 'react-toastify';
+
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-const [showPassword, setShowPassword] = useState(false);
+  const dispatch = useDispatch();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,11 +39,44 @@ const [showPassword, setShowPassword] = useState(false);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log('Login submitted:', formData);
-      // Add your login API call here
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/login`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Store token and user in localStorage
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          // Dispatch token and user to Redux store
+          dispatch(setToken(data.token));
+          dispatch(setUser(data.user));
+          
+          toast.success(data.message || 'Login successful!');
+          
+          // Redirect to home page
+          navigate('/');
+        } else {
+          toast.error(data.message || 'Login failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        toast.error('An error occurred during login. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -96,9 +135,10 @@ const [showPassword, setShowPassword] = useState(false);
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 

@@ -1,230 +1,187 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  FaSearch,
-  FaShoppingCart,
-  FaHome,
-  FaFileAlt,
-  FaGraduationCap,
-  FaStore,
-  FaInfoCircle,
-  FaEnvelope,
-  FaUser,
-  FaSignInAlt,
-  FaBars,
-  FaTimes,
-} from "react-icons/fa";
-import {
-  Dropdown,
-  DropdownMenu,
-  DropdownTrigger,
-  DropdownItem,
-  Button,
-} from "@heroui/react";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { 
+  Sun, Moon, ShoppingCart, Menu, X, Search, ArrowRight 
+} from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import ProfileDropdown from "./Auth/ProfileDropdown";
 
 const Navbaar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const { token } = useSelector((state) => state.auth || {});
   const { user } = useSelector((state) => state.profile || {});
   const { totalItems } = useSelector((state) => state.cart || {});
 
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleNavigation = (path) => {
-    if (!token && path !== "/login" && path !== "/signup") {
-      toast.error("Please login to continue!");
-      navigate("/login");
+  // 1. Initial Theme Check
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    
+    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+      setIsDark(true);
+      document.documentElement.classList.add("dark");
     } else {
-      navigate(path);
+      setIsDark(false);
+      document.documentElement.classList.remove("dark");
     }
-    setIsOpen(false);
+  }, []);
+
+  // 2. Scroll Effect
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // 3. Toggle Function
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDark(true);
+    }
   };
 
   const navItems = [
-    { label: "Home", path: "/", icon: <FaHome /> },
-    {
-      label: "Pages",
-      dropdown: [
-        { label: "Courses", path: "/courses" },
-        { label: "Policy", path: "#" },
-        { label: "Educator Offers", path: "#" },
-        { label: "Coupon Codes", path: "#" },
-      ],
-      icon: <FaFileAlt />,
-    },
-    { label: "Courses", path: "/courses", icon: <FaGraduationCap /> },
-    { label: "Shop", path: "/shop", icon: <FaStore /> },
-    { label: "About", path: "/about", icon: <FaInfoCircle /> },
-    { label: "Contact", path: "/contact", icon: <FaEnvelope /> },
-    { label: "Blogs", path: "/blogs", icon: <FaFileAlt /> },
-    { label: "Quiz", path: "/quiz", icon: <FaGraduationCap /> },
+  
+    { label: "Shop", path: "/shop" },
+    { label: "Blogs", path: "/blogs" },
+    { label: "About Us", path: "/about" },
+    { label: "Contact Us", path: "/contact" },
+      { label: "Courses", path: "/courses" },
+    { label: "Quiz", path: "/quiz" },
   ];
 
   return (
-    <nav className="bg-white shadow-lg border-b border-gray-100 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-6">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3">
-            <img
-              src="/Images/logo2.png"
-              alt="EduLerns Logo"
-              className="w-28 h-20 object-contain"
+    // Note the use of 'dark:bg-black' for that pitch black premium feel
+    <nav className={`sticky top-0 z-[100] w-full transition-all duration-500 ${
+      scrolled 
+      ? "bg-white/80 dark:bg-black/80 backdrop-blur-xl py-2 shadow-lg border-b border-gray-200/50 dark:border-white/10" 
+      : "bg-white dark:bg-black py-4 border-b border-transparent"
+    }`}>
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex justify-between items-center h-14">
+          
+          {/* Logo Section */}
+          <Link to="/" className="relative group">
+            <img 
+              src="/Images/logo2.png" 
+              alt="Logo" 
+              className="w-24 h-auto dark:invert dark:brightness-200 transition-all duration-300" 
             />
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-6">
-            {navItems.map((item, index) =>
-              item.dropdown ? (
-                <div
-                  key={index}
-                  className="flex items-center space-x-2 text-gray-700 group relative"
-                >
-                  {item.icon}
-                  <Dropdown backdrop="blur">
-                    <DropdownTrigger>
-                      <Button
-                        variant="bordered"
-                        className="text-gray-700 font-medium"
-                      >
-                        {item.label}
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu
-                      aria-label={`${item.label} Navigation`}
-                      variant="faded"
-                      className="bg-white rounded-lg shadow-lg p-4 min-w-[200px] text-gray-800"
-                    >
-                      {item.dropdown.map((sub, idx) => (
-                        <DropdownItem
-                          key={idx}
-                          onClick={() => handleNavigation(sub.path)}
-                          className="hover:bg-blue-50 rounded-md px-3 py-2"
-                        >
-                          {sub.label}
-                        </DropdownItem>
-                      ))}
-                    </DropdownMenu>
-                  </Dropdown>
-                </div>
-              ) : (
-                <Link
-                  key={index}
-                  to={item.path}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition duration-200 font-medium"
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              )
-            )}
+          {/* Desktop Nav - Floating Pill */}
+          <div className="hidden lg:flex items-center gap-1 bg-gray-100 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 p-1 rounded-full transition-colors duration-300">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                to={item.path}
+                className={`px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300 ${
+                  location.pathname === item.path 
+                  ? "bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-sm" 
+                  : "text-gray-500 dark:text-neutral-400 hover:text-black dark:hover:text-white"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
 
-          {/* Right Section */}
-          <div className="hidden md:flex items-center gap-4">
-            {/* Cart */}
-            {user && user.accountType !== "Instructor" && token && (
-              <Link to="/dashboard/cart" className="relative">
-                <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg relative">
-                  <FaShoppingCart className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {totalItems || 0}
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-4">
+            
+         
+
+            {/* THEME TOGGLE TRACK */}
+            <div 
+              onClick={toggleTheme}
+              className="relative w-14 h-7 bg-gray-200 dark:bg-neutral-800 rounded-full cursor-pointer p-1 transition-colors duration-500 ring-1 ring-inset ring-black/5 dark:ring-white/10"
+            >
+              <div className={`absolute top-1 left-1 w-5 h-5 rounded-full shadow-md transform transition-transform duration-500 flex items-center justify-center ${
+                isDark ? "translate-x-7 bg-blue-600" : "translate-x-0 bg-white"
+              }`}>
+                {isDark ? <Moon size={12} className="text-white" /> : <Sun size={12} className="text-yellow-500" />}
+              </div>
+            </div>
+
+            {/* CART */}
+            {user?.accountType !== "Instructor" && token && (
+              <Link to="/dashboard/cart" className="relative p-2 text-gray-600 dark:text-gray-300">
+                <ShoppingCart size={22} strokeWidth={1.5} />
+                {totalItems > 0 && (
+                  <span className="absolute top-0 right-0 bg-red-500 text-[10px] text-white font-bold h-4 w-4 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-black">
+                    {totalItems}
                   </span>
-                </button>
+                )}
               </Link>
             )}
 
-            {/* Auth Buttons */}
+            {/* AUTH SECTION */}
             {!token ? (
-              <>
-                <button
-                  onClick={() => handleNavigation("/login")}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 font-medium"
+              <div className="hidden md:flex items-center gap-3">
+                <Link 
+                  to="/signup" 
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
                 >
-                  <FaUser className="w-4 h-4" />
-                  <span className="text-black">Login</span>
-                </button>
-  
-
-
-  
-                <Link to="/signup">
-                  <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 flex items-center space-x-2 transition">
-                    <FaSignInAlt className="w-4 h-4" />
-                    <span>Try for Free</span>
-                  </button>
+                  Join Now <ArrowRight size={16} />
                 </Link>
-
-              </>
+              </div>
             ) : (
               <ProfileDropdown />
             )}
-          </div>
 
-          {/* Hamburger Button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 focus:outline-none"
+            {/* MOBILE MENU TOGGLE */}
+            <button 
+              onClick={() => setIsOpen(!isOpen)} 
+              className="lg:hidden p-2 text-gray-700 dark:text-white"
             >
-              {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+              {isOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-white shadow-lg border-t border-gray-200 rounded-b-lg p-6 space-y-4 animate-slide-down">
-          {navItems.map((item, index) =>
-            item.dropdown ? (
-              <div key={index} className="space-y-2">
-                <p className="font-semibold text-gray-700">{item.label}</p>
-                {item.dropdown.map((sub, idx) => (
-                  <Link
-                    key={idx}
-                    to={sub.path}
-                    className="block text-gray-600 hover:text-blue-600 pl-4"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {sub.label}
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <Link
-                key={index}
-                to={item.path}
-                className="block text-gray-800 font-medium hover:text-blue-600 transition duration-200"
-                onClick={() => setIsOpen(false)}
-              >
-                {item.label}
-              </Link>
-            )
-          )}
-
-          <div className="pt-4 border-t">
-            {!token ? (
-              <button
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 flex items-center justify-center space-x-2 transition"
-                onClick={() => handleNavigation("/signup")}
-              >
-                <FaSignInAlt className="w-4 h-4" />
-                <span>Try for Free</span>
-              </button>
-            ) : (
-              <ProfileDropdown />
-            )}
-          </div>
+      {/* MOBILE MENU OVERLAY */}
+      <div className={`fixed inset-0 top-0 bg-white dark:bg-black z-[110] transition-all duration-500 ease-in-out ${
+        isOpen ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+      } lg:hidden`}>
+        <div className="flex justify-end p-6">
+          <button onClick={() => setIsOpen(false)} className="dark:text-white"><X size={32} /></button>
         </div>
-      )}
+        <div className="flex flex-col items-center justify-center h-full space-y-10 pb-20">
+          {navItems.map((item) => (
+            <Link 
+              key={item.label}
+              to={item.path} 
+              onClick={() => setIsOpen(false)}
+              className="text-4xl font-bold dark:text-white tracking-tighter hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
+          {!token && (
+            <button 
+              onClick={() => {navigate("/login"); setIsOpen(false);}} 
+              className="text-xl font-medium text-gray-500 dark:text-gray-400 underline underline-offset-8"
+            >
+              Sign In to Account
+            </button>
+          )}
+        </div>
+      </div>
 
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster />
     </nav>
   );
 };

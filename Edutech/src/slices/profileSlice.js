@@ -16,5 +16,5 @@ const profileSlice=createSlice({
         },
     },
     })
-    export const {setToken}=authSlice.actions;
-    export default authSlice.reducer;
+    export const {setUser}=profileSlice.actions;
+    export default profileSlice.reducer;

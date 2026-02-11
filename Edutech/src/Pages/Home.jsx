@@ -1,434 +1,242 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  FaChevronLeft, 
-  FaChevronRight, 
-  FaPlay, 
-  FaPause, 
-  FaStar, 
-  FaStarHalfAlt, 
-  FaRegStar, 
-  FaClock, 
-  FaUserGraduate, 
-  FaCertificate, 
-  FaLaptopCode, 
-  FaUniversity, 
-  FaChalkboardTeacher 
-  ,FaAward,FaMobileAlt,FaGlobe,FaUsers
-} from 'react-icons/fa';
-
-import { BsFillPatchCheckFill } from 'react-icons/bs';
+  ChevronLeft, 
+  ChevronRight, 
+  Play, 
+  Star, 
+  Clock, 
+  Users, 
+  Award, 
+  Laptop, 
+  Globe, 
+  Smartphone, 
+  BookOpen, 
+  CheckCircle2,
+  ArrowRight
+} from 'lucide-react';
 import Question from './Question';
 
 const Home = () => {
-  // Sample carousel data - replace these with your backend data
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
+
   const carouselItems = [
     {
       id: 1,
-      title: 'Transform Your Learning Experience',
-      description: 'Access high-quality courses from industry experts',
-      image: 'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZWR1Y2F0aW9uJTIwdGVjaG5vbG9neXxlbnwwfHwwfHx8MA%3D%3D',
-      buttonText: 'Explore Courses',
-      buttonLink: '#'
+      title: 'Master the Future of Tech',
+      subtitle: 'Expert-led courses in AI, Development, and Design.',
+      image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=2000',
     },
     {
       id: 2,
-      title: 'Learn at Your Own Pace',
-      description: 'Study anytime, anywhere with our flexible learning platform',
-      image: 'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZWR1Y2F0aW9uJTIwdGVjaG5vbG9neXxlbnwwfHwwfHx8MA%3D%3D',
-      buttonText: 'Start Learning',
-      buttonLink: '#'
-    },
-    {
-      id: 3,
-      title: 'Expert-Led Courses',
-      description: 'Learn from professionals with real-world experience',
-      image: 'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZWR1Y2F0aW9uJTIwdGVjaG5vbG9neXxlbnwwfHwwfHx8MA%3D%3D',
-      buttonText: 'Meet Our Instructors',
-      buttonLink: '#'
+      title: 'Learn Without Boundaries',
+      subtitle: 'Premium education designed for your global career.',
+      image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=2000',
     }
   ];
 
+  const categories = [
+    { icon: <Laptop size={32} />, title: 'Coding Bootcamps', color: 'text-blue-500' },
+    { icon: <Globe size={32} />, title: 'Global Degrees', color: 'text-emerald-500' },
+    { icon: <Award size={32} />, title: 'Certifications', color: 'text-amber-500' },
+    { icon: <Smartphone size={32} />, title: 'Mobile Learning', color: 'text-rose-500' },
+  ];
 
-const categories = [
-  {
-    icon: <FaLaptopCode className="text-4xl text-blue-500 mb-4" />,
-    title: 'Coding Bootcamps',
-    description: 'Learn full-stack web development with hands-on projects.',
-  },
-  {
-    icon: <FaUniversity className="text-4xl text-green-500 mb-4" />,
-    title: 'Online Degrees',
-    description: 'Earn accredited degrees without leaving your home.',
-  },
-  {
-    icon: <FaChalkboardTeacher className="text-4xl text-purple-500 mb-4" />,
-    title: 'Expert Instructors',
-    description: 'Get mentored by industry experts and seasoned educators.',
-  },
-  {
-    icon: <FaCertificate className="text-4xl text-yellow-500 mb-4" />,
-    title: 'Certification Programs',
-    description: 'Acquire professional certifications to boost your career.',
-  },
-  {
-    icon: <FaClock className="text-4xl text-indigo-500 mb-4" />,
-    title: 'Flexible Learning',
-    description: 'Study at your own pace with 24/7 access to materials.',
-  },
-  {
-    icon: <FaAward className="text-4xl text-red-500 mb-4" />,
-    title: 'Industry Recognized',
-    description: 'Our certifications are backed by top tech companies.',
-  },
-  {
-    icon: <FaMobileAlt className="text-4xl text-teal-500 mb-4" />,
-    title: 'Mobile Access',
-    description: 'Learn on the go with our fully responsive mobile platform.',
-  },
-  {
-    icon: <FaGlobe className="text-4xl text-orange-500 mb-4" />,
-    title: 'Global Community',
-    description: 'Join thousands of learners from around the world.',
-  },
-
-];
-
-
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-
-  // Handle next slide
-  const nextSlide = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === carouselItems.length - 1 ? 0 : prevIndex + 1
-    );
-  };
-
-  // Handle previous slide
-  const prevSlide = () => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? carouselItems.length - 1 : prevIndex - 1
-    );
-  };
-
-  // Handle touch events for swipe
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 50) {
-      nextSlide();
-    }
-    
-    if (touchStart - touchEnd < -50) {
-      prevSlide();
-    }
-  };
-
-  // Auto slide images every 5 seconds
   useEffect(() => {
-    let interval;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        nextSlide();
-      }, 5000);
-    }
-    return () => clearInterval(interval);
-  }, [currentIndex, isPlaying]);
-
-  const togglePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  // Go to specific slide
-  const goToSlide = (index) => {
-    setCurrentIndex(index);
-  };
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev === carouselItems.length - 1 ? 0 : prev + 1));
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div className="relative w-full">
-      {/* Carousel Section */}
-      <div 
-        className="relative w-full h-screen overflow-hidden"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {/* Carousel Track */}
-        <div 
-          className="flex transition-transform duration-700 ease-in-out h-full"
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-        >
-          {carouselItems.map((item, index) => (
-            <div 
-              key={item.id}
-              className="w-full flex-shrink-0 h-full bg-cover bg-center relative"
-              style={{ backgroundImage: `url(${item.image})` }}
-            >
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div className="text-center text-white px-4 max-w-4xl mx-auto">
-                  <h1 className="text-4xl md:text-6xl font-bold mb-4">{item.title}</h1>
-                  <p className="text-xl md:text-2xl mb-8">{item.description}</p>
-                  <a 
-                    href={item.buttonLink}
-                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-300"
-                  >
-                    {item.buttonText}
-                  </a>
-                </div>
-              </div>
+    <div className="bg-white dark:bg-black transition-colors duration-500">
+      
+      {/* 1. HERO CAROUSEL SECTION */}
+      <section className="relative h-[90vh] w-full overflow-hidden bg-black">
+        <AnimatePresence mode='wait'>
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5 }}
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${carouselItems[currentIndex].image})` }}
+          >
+            {/* Cinematic Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="relative z-10 h-full max-w-7xl mx-auto px-6 flex flex-col justify-center">
+          <motion.div
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="max-w-2xl"
+          >
+            <span className="text-blue-500 font-bold tracking-[0.3em] uppercase text-xs mb-4 block">
+              Evolutionize your career
+            </span>
+            <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tighter leading-none mb-6">
+              {carouselItems[currentIndex].title}
+            </h1>
+            <p className="text-xl text-gray-300 mb-10 font-light max-w-lg">
+              {carouselItems[currentIndex].subtitle}
+            </p>
+            <div className="flex gap-4">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold transition-all flex items-center gap-2 group shadow-xl shadow-blue-500/20">
+                Explore Hub <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-full font-bold hover:bg-white/20 transition-all">
+                Our Story
+              </button>
             </div>
-          ))}
+          </motion.div>
         </div>
 
-        {/* Navigation Arrows */}
-        <button 
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 focus:outline-none z-10"
-          aria-label="Previous slide"
-        >
-          <FaChevronLeft size={24} />
-        </button>
-        <button 
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 focus:outline-none z-10"
-          aria-label="Next slide"
-        >
-          <FaChevronRight size={24} />
-        </button>
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-10 left-6 z-20 flex gap-2">
+          {carouselItems.map((_, i) => (
+            <div 
+              key={i} 
+              className={`h-1 transition-all duration-500 rounded-full ${currentIndex === i ? 'w-12 bg-blue-500' : 'w-4 bg-white/30'}`} 
+            />
+          ))}
+        </div>
+      </section>
 
-      </div>
-{/**catogeries page  */}
-
-<div className="py-12 bg-gray-100">
-  
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <p className="text-xl font-bold text-gray-400 mb-2 uppercase">Popular Categories</p>
-      <h1 className="text-3xl font-bold mb-10">Providing Online Classes for Remote Learning</h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {categories.map((cat, idx) => (
-          <div
-            key={idx}
-            className="bg-white p-10 rounded-lg shadow-md border-2 border-gray-200 transform transition duration-300 hover:border-blue-500 hover:-translate-y-3"
-          >
-            <div className="flex justify-center  ">{cat.icon}</div>
-            <h2 className="text-xl font-semibold mb-2">{cat.title}</h2>
-            <p className="text-gray-600">{cat.description}</p>
+      {/* 2. PREMIUM CATEGORIES SECTION */}
+      <section className="py-24 px-6 bg-gray-50 dark:bg-neutral-950 transition-colors">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
+            <div className="max-w-xl">
+              <h2 className="text-4xl md:text-5xl font-bold text-black dark:text-white tracking-tighter">
+                Explore by <span className="text-blue-600">Discipline</span>
+              </h2>
+            </div>
+            <button className="text-blue-600 dark:text-blue-400 font-bold flex items-center gap-2 group">
+              View All <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
-        ))}
-      </div>
-     
-  
-    </div>
-    
-    </div>
 
-
-
-
-
-      {/* {Premium Courses Section */}
-      <div className="py-20 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <span className="inline-block bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full mb-4">
-              Premium Learning
-            </span>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Premium Courses</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Upgrade your skills with our most popular premium courses taught by industry experts</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                id: 1,
-                title: 'Advanced Web Development',
-                instructor: 'Sarah Johnson',
-                rating: 4.8,
-                students: 1245,
-                duration: '32 hours',
-                price: '$149.99',
-                originalPrice: '$249.99',
-                image: '',
-                isBestseller: true,
-                features: ['Project-based learning', 'Certificate included', 'Lifetime access']
-              },
-              {
-                id: 2,
-                title: 'Data Science Masterclass',
-                instructor: 'Michael Chen',
-                rating: 4.9,
-                students: 987,
-                duration: '45 hours',
-                price: '$199.99',
-                originalPrice: '$349.99',
-                image: 'https://source.unsplash.com/random/600x400/?data,science',
-                isBestseller: true,
-                features: ['Hands-on projects', 'Python & R', 'Real-world case studies']
-              },
-              {
-                id: 3,
-                title: 'UI/UX Design Pro',
-                instructor: 'Emma Wilson',
-                rating: 4.7,
-                students: 856,
-                duration: '28 hours',
-                price: '$129.99',
-                originalPrice: '$199.99',
-                image: 'https://source.unsplash.com/random/600x400/?ui,design',
-                isBestseller: false,
-                features: ['Figma & Adobe XD', 'Portfolio projects', '1-on-1 mentoring']
-              }
-            ].map((course) => (
-              <div key={course.id} className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="relative">
-                  <img 
-                    src={course.image} 
-                    alt={course.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  {course.isBestseller && (
-                    <div className="absolute top-4 left-4 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                      Bestseller
-                    </div>
-                  )}
-                  <div className="absolute bottom-4 right-4 bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full">
-                    {course.rating} ★
-                  </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {categories.map((cat, idx) => (
+              <div
+                key={idx}
+                className="group p-8 rounded-[2rem] bg-white dark:bg-black border border-gray-100 dark:border-neutral-800 hover:border-blue-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/5"
+              >
+                <div className={`${cat.color} mb-6 transition-transform group-hover:scale-110 duration-500`}>
+                  {cat.icon}
                 </div>
-                
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl font-bold text-gray-900">{course.title}</h3>
-                    <div className="flex items-center">
-                      <span className="text-2xl font-bold text-blue-600">{course.price}</span>
-                      <span className="ml-2 text-sm text-gray-500 line-through">{course.originalPrice}</span>
-                    </div>
-                  </div>
-                  
-                  <p className="text-gray-600 mb-4">By {course.instructor}</p>
-                  
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <div className="flex items-center mr-4">
-                      <FaClock className="mr-1 text-blue-500" />
-                      <span>{course.duration}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <FaUserGraduate className="mr-1 text-blue-500" />
-                      <span>{course.students.toLocaleString()} students</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    {course.features.map((feature, index) => (
-                      <div key={index} className="flex items-center mb-2">
-                        <BsFillPatchCheckFill className="text-green-500 mr-2" />
-                        <span className="text-gray-700">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center">
-                    Enroll Now
-                    <FaCertificate className="ml-2" />
-                  </button>
-                </div>
+                <h3 className="text-xl font-bold text-black dark:text-white mb-2">{cat.title}</h3>
+                <p className="text-gray-500 dark:text-neutral-500 text-sm leading-relaxed">
+                  Join a community of thousands mastering new skills daily.
+                </p>
               </div>
             ))}
           </div>
-          
-          <div className="text-center mt-12">
-            <button className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-              View All Premium Courses
-              <FaChevronRight className="ml-2" />
-            </button>
+        </div>
+      </section>
+
+      {/* 3. FEATURED COURSES SECTION */}
+      <section className="py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <span className="text-blue-600 font-bold tracking-widest text-xs uppercase">Premium Selection</span>
+            <h2 className="text-5xl font-bold text-black dark:text-white tracking-tighter mt-4">Featured Excellence</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {[1, 2, 3].map((item) => (
+              <motion.div 
+                key={item}
+                whileHover={{ y: -10 }}
+                className="bg-gray-50 dark:bg-neutral-950 rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-neutral-900 group"
+              >
+                <div className="h-64 relative overflow-hidden">
+                  <img 
+                    src={`https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800`} 
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110" 
+                    alt="Course"
+                  />
+                  <div className="absolute top-6 left-6 bg-white dark:bg-black px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest dark:text-white">
+                    Bestseller
+                  </div>
+                </div>
+                <div className="p-10">
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-1 text-amber-500">
+                      <Star size={16} fill="currentColor" />
+                      <span className="text-sm font-bold text-black dark:text-white">4.9</span>
+                    </div>
+                    <span className="text-xs text-gray-400 font-medium tracking-widest uppercase">32 Hours</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-black dark:text-white mb-6 group-hover:text-blue-600 transition-colors">
+                    Advanced Full-Stack Engineering Pro
+                  </h3>
+                  <div className="flex items-center justify-between border-t dark:border-neutral-800 pt-6">
+                    <div>
+                      <span className="text-gray-400 text-xs block uppercase font-bold tracking-tighter">Price</span>
+                      <span className="text-2xl font-black text-black dark:text-white">$149</span>
+                    </div>
+                    <button className="p-4 bg-black dark:bg-white text-white dark:text-black rounded-2xl hover:bg-blue-600 dark:hover:bg-blue-600 dark:hover:text-white transition-all">
+                      <Play size={20} fill="currentColor" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
-      </div> 
+      </section>
 
-
-{/**  industry projects page  */}
-
- <div className="py-5 gap-20 flex flex-col bg-gray-100 pb-10">
-      {/* Heading */}
-      <div className="text-center mb-12">
-        <p className="text-teal-400 uppercase text-3xl font-semibold mb-2 font-serif">Our Advantages</p>
-        <h1 className="text-4xl font-bold font-serif text-gray-900">
-          You've come to the right <br/> place to learn
-        </h1>
-      </div>
-
-{/* Cards Container */}
-<div className="max-w-5xl py mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-20">
-
-  {/* Card 1 */}
-  <div className="text-center">
-    <img 
-      src="/Images/online.png" 
-      alt="Online Courses" 
-      className="mx-auto mb-4 h-84 w-84 object-contain transform transition-transform duration-300 hover:scale-105  hover:-translate-y-2"
-    />
-    <h2 className="text-2xl font-bold mb-2 font-sans">13 Courses</h2>
-    <p className="text-gray-600 font-sans text-[15px]">
-      Whether you want to learn or to share what you know, you’ve come to the right place.
-    </p>
-  </div>
-
-  {/* Card 2 */}
-  <div className="text-center">
-    <img 
-      src="/Images/industry.png" 
-      alt="Industry Instructors" 
-      className="mx-auto mb-4 h-84 w-84 object-contain transform transition-transform duration-300 hover:scale-105 hover:-translate-y-2"
-    />
-    <h2 className="text-2xl font-bold mb-2">Industry Instructors</h2>
-    <p className="text-gray-600">
-      Whether you want to learn or to share what you know, you’ve come to the right place.
-    </p>
-  </div>
-
-  {/* Card 3 */}
-  <div className="text-center">
-    <img 
-      src="/Images/lifetime.png" 
-      alt="Lifetime Access" 
-      className="mx-auto mb-4 h-84 w-84 object-contain transform transition-transform duration-300 hover:scale-105 hover:-translate-y-2"
-    />
-    <h2 className="text-2xl font-bold mb-2">Lifetime Access</h2>
-    <p className="text-gray-600">
-      Whether you want to learn or to share what you know, you’ve come to the right place.
-    </p>
-  </div>
-
-</div>
-
-    </div>
-
-
-    <Question/>
-
-      {/* CTA Section */}
-      <div className="py-20 bg-blue-600 text-white">
-        <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-3xl font-bold mb-6">Ready to Start Learning?</h2>
-          <p className="text-xl mb-8">Join thousands of students who are already advancing their careers with our courses.</p>
-          <a 
-            href="#" 
-            className="inline-block bg-white text-blue-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-full text-lg transition duration-300"
-          >
-            Get Started Now
-          </a>
+      {/* 4. INDUSTRY ADVANTAGES (The Image Cards) */}
+      <section className="py-24 bg-gray-50 dark:bg-neutral-950 transition-colors">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl font-bold text-black dark:text-white tracking-tighter">The EduLerns Edge</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+            {[
+              { img: '/Images/online.png', title: '13+ Premium Tracks' },
+              { img: '/Images/industry.png', title: 'Industry Veterans' },
+              { img: '/Images/lifetime.png', title: 'Lifetime Learning' }
+            ].map((adv, idx) => (
+              <div key={idx} className="text-center group">
+                <div className="relative mb-8 inline-block">
+                  <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <img src={adv.img} alt={adv.title} className="w-48 h-48 object-contain relative z-10 group-hover:scale-110 transition-transform duration-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-black dark:text-white mb-4">{adv.title}</h3>
+                <p className="text-gray-500 dark:text-neutral-500 text-sm leading-relaxed max-w-xs mx-auto">
+                  Engineered to provide the most relevant, up-to-date knowledge for the modern professional.
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
+
+      <Question />
+
+      {/* 5. CALL TO ACTION */}
+      <section className="py-4 px-6">
+        <div className="max-w-7xl mx-auto bg-blue-600 rounded-[3rem] p-1 md:p-24 text-center relative overflow-hidden shadow-2xl shadow-blue-500/20">
+          <div className="absolute top-0 right-0 w-34 h-34 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <h2 className="text-5xl md:text-7xl font-bold text-white tracking-tighter mb-8 relative z-10">
+            Your Future <br /> Starts Now.
+          </h2>
+          <p className="text-blue-100 text-xl mb-12 max-w-xl mx-auto font-light">
+            Join 50,000+ students already mastering the skills of tomorrow.
+          </p>
+          <button onClick={()=>{}} className="bg-white text-blue-600 px-10 py-5 rounded-full font-black text-lg hover:bg-gray-100 transition-all shadow-xl">
+            Get Started Free
+          </button>
+        </div>
+      </section>
     </div>
   );
 };
