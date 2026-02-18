@@ -3,9 +3,9 @@ const User = require("../Models/User");
 const Otp = require("../Models/Otp");
 const Profile = require("../Models/Profile"); // FIX: was Profiler
 const { customAlphabet } = require("nanoid");
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { send } = require("vite");
 require("dotenv").config();
 
 
@@ -358,45 +358,46 @@ exports.verifyOtp = async (req, res) => {
     });
   }
 };
-
 exports.resetPassword = async (req, res) => {
-  try{
-    const {email} = req.body;
+  try {
+    const { email } = req.body;
 
-    if(!email){
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: "Email is required"
+        message: "Email is required",
       });
     }
 
-    const user = await User.findOne({email});
+    const user = await User.findOne({ email });
 
-    if(!user){
+    if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
-    const resetToken = jwt.sign({email: user.email}, process.env.JWT_SECRET, {expiresIn: "15m"});
+    const resetToken = jwt.sign(
+      { email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
-    // Here you would send the resetToken to the user's email with a link to reset password page
-      sendEmail(
-        user.email,
-        "Password Reset Request",
-        `
-          <h2>Password Reset</h2>
-          <p>You requested a password reset. Click the link below to reset your password:</p>
-          <a href="${process.env.FRONTEND_URL}/reset-password?token=${resetToken}" style="background-color:#2563eb;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Reset Password</a>
-          <p>This link will expire in 15 minutes.</p>
-        `
-      );  
-
+    // TODO: implement sendEmail properly
+    console.log("Reset Token:", resetToken);
 
     return res.status(200).json({
       success: true,
-      message: "Password reset link sent to email",
-      resetToken
+      message: "Password reset link generated",
+      resetToken,
+    });
+
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during password reset",
     });
   }
+};
