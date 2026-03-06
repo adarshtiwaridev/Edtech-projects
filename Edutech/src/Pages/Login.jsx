@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { setToken, setUser } from '../slices/authSlice';
+import { setToken, setUser as setAuthUser } from '../slices/authSlice';
+import { setUser as setProfileUser } from '../slices/profileSlice';
 import toast from "react-hot-toast";
 
 
@@ -65,7 +66,9 @@ const Login = () => {
           
           // Dispatch token and user to Redux store
           dispatch(setToken(data.token));
-          dispatch(setUser(data.user));
+          dispatch(setAuthUser(data.user));
+          // also populate profile slice for immediate use
+          dispatch(setProfileUser(data.user));
           
           toast.success(data.message || 'Login successful!');
           

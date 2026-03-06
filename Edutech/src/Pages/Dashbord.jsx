@@ -1,34 +1,45 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { User, Mail, Phone, Shield, BookOpen, Clock, Moon, Sun } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { User, Mail, Phone, Shield, BookOpen, Clock, Sun, Moon } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { fetchProfile } from '../slices/profileSlice';
+import useTheme from '../hooks/useTheme';
 
 const Dashboard = () => {
-  const [userData, setUserData] = useState(null);
-  const [isDark, setIsDark] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user: userData, loading } = useSelector(state => state.profile);
+  const token = useSelector(state => state.auth.token);
 
+  const { isDark, toggleTheme } = useTheme();
+
+  // redirect if not authenticated
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/usersprofile/getUserDetails", {
-          method: "GET",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" }
-        });
-        const json = await res.json();
-        setUserData(json.data); // Assuming your backend wraps data in a 'data' object
-      } catch (err) {
-        console.error("Failed to fetch:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
+    if (!token) {
+      navigate('/login');
+    }
+  }, [token, navigate]);
+
+  // fetch profile once when component mounts (if not already loaded)
+  useEffect(() => {
+    if (token && !userData && !loading) {
+      dispatch(fetchProfile());
+    }
+  }, [token, userData, loading, dispatch]);
 
   const themeClass = isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900";
   const cardClass = isDark ? "bg-slate-900/50 border-slate-800" : "bg-white border-slate-200";
 
+  if (!token) return null; // early return while redirecting
+
+  if (loading || !userData) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-current"></div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${themeClass} p-4 md:p-8 font-sans`}>
@@ -40,12 +51,18 @@ const Dashboard = () => {
             Welcome back, {userData?.firstName || 'User'}
           </p>
         </div>
-        <button 
-          onClick={() => setIsDark(!isDark)}
-          className={`p-2 rounded-full border ${cardClass} hover:scale-110 transition-transform`}
+
+        {/* theme toggle pill (same as navbar) */}
+        <div 
+          onClick={toggleTheme}
+          className="relative w-14 h-7 bg-gray-200 dark:bg-neutral-800 rounded-full cursor-pointer p-1 transition-colors duration-500 ring-1 ring-inset ring-black/5 dark:ring-white/10"
         >
-          {isDark ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
+          <div className={`absolute top-1 left-1 w-5 h-5 rounded-full shadow-md transform transition-transform duration-500 flex items-center justify-center ${
+            isDark ? "translate-x-7 bg-blue-600" : "translate-x-0 bg-white"
+          }`}>
+            {isDark ? <Moon size={12} className="text-white" /> : <Sun size={12} className="text-yellow-500" />}
+          </div>
+        </div>
       </header>
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">

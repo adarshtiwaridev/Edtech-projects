@@ -39,7 +39,8 @@ const ProfileDropdown = () => {
       key: "dashboard",
       label: "Dashboard",
       icon: <FaTachometerAlt className="text-blue-500" />,
-      path: "/Dashboard"
+      // lowercase path matches App.jsx route definition
+      path: "/dashboard"
     },
     {
       key: "profile",

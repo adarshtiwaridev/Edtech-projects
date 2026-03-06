@@ -14,6 +14,10 @@ import AdminQuiz from "./Pages/AdminQuiz";
 import VerifyOtp from "./Pages/VerifyOtp";
 import NotFound from "./Pages/NotFound";
 import ForgotPassword from "./Pages/ForgotPassword";
+// dashboard route added to support profile links/navigation
+import Dashboard from "./Pages/Dashbord";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
 
@@ -32,6 +36,17 @@ function App() {
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/admin-quiz" element={<AdminQuiz />} />
         <Route path="/Forgot-password" element={<ForgotPassword />} />
+
+        {/* dashboard route (lowercase) wrapped in auth guard */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="*" element={<NotFound />} />
 
       </Routes>
