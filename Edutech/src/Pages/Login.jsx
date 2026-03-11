@@ -60,11 +60,7 @@ const Login = () => {
         const data = await response.json();
 
         if (data.success) {
-          // Store token and user in localStorage
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          
-          // Dispatch token and user to Redux store
+          // Dispatch token and user to Redux store (Redux Persist will save it)
           dispatch(setToken(data.token));
           dispatch(setAuthUser(data.user));
           // also populate profile slice for immediate use
