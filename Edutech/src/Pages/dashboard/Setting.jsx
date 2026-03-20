@@ -3,8 +3,8 @@ import { User, RefreshCcw, Sun, Moon, Trash2, ChevronDown } from "lucide-react";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { useState } from "react";
-
-
+import { useDispatch } from "react-redux";
+import { logout } from "../../slices/authSlice";
 // ==========================================
 // 1. SUB-FORM COMPONENTS (Internal Logic)
 // ==========================================
@@ -18,6 +18,11 @@ const ProfileForm = () => {
   const [imageFile, setImageFile] = useState(null);
   const [previewSource, setPreviewSource] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+      const dispatch = useDispatch();
+  // Accessing profile and token from Redux store
+
+  const {user}= useSelector((state) => state.profile.user);
+  
  const token =useSelector((state)=>state.auth.token);
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -52,9 +57,12 @@ const ProfileForm = () => {
       }
     );
 
+        //  dispatch(setUser(response.data.user)); 
     if (response.data.success) {
       toast.success("Profile picture updated!");
     }
+    setImageFile(null);
+    setPreviewSource(null);
   } catch (error) {
     console.error(error);
     toast.error("Upload failed");
@@ -70,13 +78,12 @@ const ProfileForm = () => {
         <div className="w-28 h-28 rounded-full overflow-hidden bg-slate-200 border-2 border-blue-500 shadow-md">
           {previewSource ? (
             <img
-              src={previewSource}
+              src={previewSource || user?.profilePicture}
               alt="preview"
               className="w-full h-full object-cover"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400 text-xs">
-              No Image
             </div>
           )}
         </div>
@@ -107,6 +114,8 @@ const ProfileForm = () => {
     </form>
   );
 };
+
+
 const ResetTokenForm = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");

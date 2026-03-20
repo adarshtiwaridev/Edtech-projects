@@ -13,7 +13,8 @@ const ProfileDropdown = () => {
 
   const { user } = useSelector((state) => state.profile);
   const { token } = useSelector((state) => state.auth);
-
+   
+   console.log("ProfileDropdown - user:", user);
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -64,7 +65,7 @@ const ProfileDropdown = () => {
         className="flex items-center gap-x-2 p-1 pr-3 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-all duration-200 border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
       >
         <img
-          src={user?.profilePicture || "/Images/normal.jpg"}
+          src={user?.profilePicture }
           alt={user?.firstName}
           className="w-9 h-9 rounded-full object-cover border-2 border-blue-500/20"
         />
