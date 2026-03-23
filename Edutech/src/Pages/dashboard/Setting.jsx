@@ -2,13 +2,12 @@
 import { User, RefreshCcw, Sun, Moon, Trash2, ChevronDown } from "lucide-react";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setUser } from "../../slices/authSlice";
+import { setAuthUser } from "../../slices/authSlice";
 import { logout } from "../../slices/authSlice";
-// ==========================================
-// 1. SUB-FORM COMPONENTS (Internal Logic)
-// ==========================================
+import { fetchProfile, setProfileUser } from "../../slices/profileSlice";
+import { useNavigate } from "react-router-dom";
 
 
 import axios from 'axios'; // Assuming you use axios for API calls
@@ -19,12 +18,19 @@ const ProfileForm = () => {
   const [imageFile, setImageFile] = useState(null);
   const [previewSource, setPreviewSource] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-      const dispatch = useDispatch();
+  const [imgVersion, setImgVersion] = useState(Date.now());
+  const dispatch = useDispatch();
+
   // Accessing profile and token from Redux store
 
-const user = useSelector((state) => state.auth.user);
-  
- const token =useSelector((state)=>state.auth.token);
+  const user = useSelector((state) => state.auth.user);
+  const token = useSelector((state) => state.auth.token);
+
+  useEffect(() => {
+    if (user?.profilePicture) {
+      setImgVersion(Date.now());
+    }
+  }, [user?.profilePicture]);
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -47,8 +53,7 @@ const user = useSelector((state) => state.auth.user);
     const formData = new FormData();
     formData.append("displayPicture", imageFile);
 
-    const response = await axios.put(
-      "http://localhost:5000/api/profiles/updateDisplayPicture",
+    const response = await axios.put(`http://localhost:5000/api/profiles/updateDisplayPicture`,
       formData,
       {
         headers: {
@@ -59,9 +64,13 @@ const user = useSelector((state) => state.auth.user);
     );
 
     if (response.data.success) {
-      // Update Redux store with the updated user from server response
-      dispatch(setUser(response.data.updatedUser || response.data.user));
+      // Update both slices so dashboard and navbar re-render from fresh data
+      const updatedUser = response.data.updatedUser || response.data.user || response.data;
+      dispatch(setAuthUser(updatedUser));
+      dispatch(setProfileUser(updatedUser));
       toast.success("Profile picture updated!");
+      // Ensure server RTT is reflected (keeps both slices in sync again)
+      dispatch(fetchProfile());
       setImageFile(null);
       setPreviewSource(null);
     } else {
@@ -81,13 +90,20 @@ const user = useSelector((state) => state.auth.user);
       <div className="flex flex-col items-center space-y-4">
         <div className="w-28 h-28 rounded-full overflow-hidden bg-slate-200 border-2 border-blue-500 shadow-md">
           {previewSource ? (
-         <img
-  src={previewSource || `${user?.profilePicture}?t=${Date.now()}`}
-  alt="profile"
-  className="w-full h-full object-cover"
-/>
+            <img
+              src={previewSource}
+              alt="profile"
+              className="w-full h-full object-cover"
+            />
+          ) : user?.profilePicture ? (
+            <img
+              src={`${user.profilePicture}?t=${imgVersion}`}
+              alt="profile"
+              className="w-full h-full object-cover"
+            />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400 text-xs">
+              No image uploaded yet
             </div>
           )}
         </div>
@@ -170,7 +186,8 @@ export default function Settings() {
   const [openSection, setOpenSection] = useState("profile");
   const [theme, setTheme] = useState("light");
   const [islogin, setIslogin] = useState(true);
-
+ const dispatch = useDispatch();
+ const navigate = useNavigate();
 
 
   const toggleTheme = () => {
@@ -187,7 +204,6 @@ const [confirmText, setConfirmText] = useState("");
 
 const handleDeleteAccount = async () => {
   try {
-
     const response = await fetch(
       `http://localhost:5000/api/users/deleteAccount`,
       {
@@ -200,24 +216,22 @@ const handleDeleteAccount = async () => {
     );
 
     const data = await response.json();
-   if (response.ok) {
+
+    if (response.ok) {
       toast.success("Account deleted successfully!");
 
-  // Remove token
-      localStorage.removeItem("token");
-
-      // Clear Redux state
-      dispatch(logout());
-
-      // Clear all stored data
+      // clear everything
       localStorage.clear();
 
-      // Redirect to login
-      navigate("/login");
+      // reset redux
+      dispatch(logout());
+
+      // redirect
+      navigate("/login", { replace: true });
+
     } else {
       toast.error(data.message || "Failed to delete account");
     }
-    setShowDeletePopup(false);
 
   } catch (error) {
     console.error("Error deleting account:", error.message);

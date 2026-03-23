@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { setAuthUser } from "./authSlice";
 
 // thunk to fetch the currently logged in user's profile from backend
 export const fetchProfile = createAsyncThunk(
   'profile/fetchProfile',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
       const res = await fetch(`http://localhost:5000/api/profiles/getUserDetails`, {
         method: 'GET',
@@ -16,7 +17,9 @@ export const fetchProfile = createAsyncThunk(
         return rejectWithValue(errorData.message || 'Failed to load profile');
       }
       const data = await res.json();
-      return data.data; // backend wraps profile in data
+      const profileUser = data.data;
+      dispatch(setAuthUser(profileUser)); // sync auth slice too
+      return profileUser; // backend wraps profile in data
     } catch (err) {
       return rejectWithValue(err.message || 'Network error');
     }
@@ -33,9 +36,9 @@ const profileSlice = createSlice({
     name: 'profile',
     initialState: intialState,
     reducers: {
-        setUser: (state, action) => {
-            state.user = action.payload;
-        },
+     setProfileUser: (state, action) => {
+  state.user = action.payload;
+},
     },
     extraReducers: (builder) => {
       builder
@@ -54,5 +57,5 @@ const profileSlice = createSlice({
     }
 });
 
-export const { setUser } = profileSlice.actions;
+export const { setProfileUser } = profileSlice.actions;
 export default profileSlice.reducer;

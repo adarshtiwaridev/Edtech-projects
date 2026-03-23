@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { User, Mail, Phone, Shield, BookOpen, Clock, Sun, Moon } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -9,8 +9,16 @@ import useTheme from '../hooks/useTheme';
 const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user: userData, loading } = useSelector(state => state.profile);
+  const userData = useSelector(state => state.profile.user || state.auth.user);
   const token = useSelector(state => state.auth.token);
+  const loading = useSelector(state => state.profile.loading);
+  const [avatarVersion, setAvatarVersion] = useState(Date.now());
+
+  useEffect(() => {
+    if (userData?.profilePicture) {
+      setAvatarVersion(Date.now());
+    }
+  }, [userData?.profilePicture]);
 
   const { isDark, toggleTheme } = useTheme();
 
@@ -33,7 +41,7 @@ const Dashboard = () => {
 
   if (!token) return null; // early return while redirecting
 
-  if (loading || !userData) {
+  if (!userData) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-current"></div>
@@ -73,7 +81,7 @@ const Dashboard = () => {
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
             <img 
-              src={userData?.profilePicture} 
+              src={userData?.profilePicture ? `${userData.profilePicture}?t=${avatarVersion}` : "/Images/default-avatar.png"} 
               alt="Profile" 
               className="relative w-32 h-32 rounded-full object-cover border-4 border-slate-800 shadow-2xl"
             />

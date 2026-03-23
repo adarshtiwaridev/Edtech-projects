@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { setToken, setUser as setAuthUser } from '../slices/authSlice';
-import { setUser as setProfileUser } from '../slices/profileSlice';
+import { setToken, setAuthUser as setAuthUser } from '../slices/authSlice';
+import { setProfileUser as setProfileUser } from '../slices/profileSlice';
 import toast from "react-hot-toast";
 
 

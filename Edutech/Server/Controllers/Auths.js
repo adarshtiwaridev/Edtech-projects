@@ -425,8 +425,7 @@ exports.deleteAccount = async (req, res) => {
     if (user.additionaldetails) {
       await Profile.findByIdAndDelete(user.additionaldetails);
     }
-    localStorage.removeItem("token");
-    this.logout();
+  
     return res.status(200).json({
       success: true,
       message: "Account deleted successfully",
