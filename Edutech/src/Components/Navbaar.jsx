@@ -15,6 +15,8 @@ const Navbaar = () => {
   const { isDark, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
 
+  // Redux state selectors
+
   const { token } = useSelector((state) => state.auth || {});
   const { user } = useSelector((state) => state.profile || {});
   const { totalItems } = useSelector((state) => state.cart || {});
