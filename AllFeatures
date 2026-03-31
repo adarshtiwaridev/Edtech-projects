@@ -1,0 +1,69 @@
+🚀 EdTech Platform – Clean Feature Breakdown (Resume Ready)
+🔐 1. Authentication System
+Signup/Login (Email + Password) ---done
+Google OAuth login (in last )
+Role-based access:
+👨‍🎓 Student
+👨‍🏫 Instructor
+Secure authentication (JWT / Firebase)
+📚 2. Course Management System
+Instructor Features:
+➕ Add Course (title, description, thumbnail, videos)
+🗑️ Delete / Update Course
+📊 View enrollments
+Student Features:
+🎯 Enroll in courses
+▶️ Continue learning
+🔎 Filter by category (Frontend, Backend, etc.)
+🎥 3. Video Learning System
+Embedded video player
+⏭️ Next / Previous lesson navigation
+📌 Auto-save progress
+Resume from last watched position
+📈 4. Progress Tracking System
+📊 Course completion percentage
+🔄 Status:
+Not Started
+In Progress
+Completed
+Store progress (localStorage / DB)
+🤖 5. AI Learning Assistant (🔥 Highlight Feature)
+Chatbot using OpenAI API
+Features:
+📄 Summarize lecture/video
+❓ Ask doubts
+🧠 Concept explanation
+Bonus:
+Context-based chat (course-specific)
+🧠 6. AI Interview + Quiz System (💯 standout feature)
+Topic-based quizzes (MCQ)
+AI-generated questions
+Instant feedback
+Interview prep mode:
+DSA / Web Dev / Core CS
+Difficulty levels
+🏆 7. Certificate Generator
+🎉 Auto-generate after 100% completion
+📄 PDF download
+Includes:
+User name
+Course name
+Date
+📊 8. Dashboard System
+👨‍🎓 Student Dashboard:
+Enrolled courses
+Progress bars
+Completed courses
+Streak stats:
+🔥 Daily streak (like GitHub)
+📅 Total active days
+🏆 Longest streak
+👨‍🏫 Instructor Dashboard:
+Uploaded courses
+Total students enrolled
+Course analytics
+🎨 9. UI/UX System
+Tailwind CSS + Shadcn UI
+Fully responsive design
+🌙 Light / Dark mode toggle
+Clean modern layout  
