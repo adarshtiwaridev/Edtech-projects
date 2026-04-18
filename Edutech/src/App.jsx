@@ -27,6 +27,7 @@ import StudentBrowseCoursesPage from "./Pages/dashboard/student/StudentBrowseCou
 import StudentCourseDetailsPage from "./Pages/dashboard/student/StudentCourseDetailsPage";
 import StudentMyCoursesPage from "./Pages/dashboard/student/StudentMyCoursesPage";
 import StudentLearnCoursePage from "./Pages/dashboard/student/StudentLearnCoursePage";
+import Checkout from "./Pages/dashboard/student/Cheackout";
 function App() {
   return (
 
@@ -45,7 +46,14 @@ function App() {
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/admin-quiz" element={<AdminQuiz />} />
         <Route path="/Forgot-password" element={<ForgotPassword />} />
+          <Route path="/checkout" element={
+            
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          } />
         <Route path="/dashboard/my-profile" element={
+      
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>

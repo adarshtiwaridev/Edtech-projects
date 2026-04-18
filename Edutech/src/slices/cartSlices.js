@@ -31,26 +31,15 @@ const cartSlice = createSlice({
       localStorage.setItem("cartItems", JSON.stringify(state.cartItems));
     },
 
-    // ➕ Add to Cart
-    addToCart(state, action) {
-      const itemIndex = state.cartItems.findIndex(
-        (item) => item.id === action.payload.id
-      );
+  addToCart: (state, action) => {
+  const exists = state.cartItems.find(
+    (item) => item.id === action.payload.id
+  );
 
-      if (itemIndex >= 0) {
-        state.cartItems[itemIndex].quantity += 1;
-        toast.success("Increased product quantity 🛒");
-      } else {
-        const tempProduct = { ...action.payload, quantity: 1 };
-        state.cartItems.push(tempProduct);
-        toast.success("Product added to cart 🎉");
-      }
-
-      state.totalItems = getTotalItemCount(state.cartItems);
-
-      localStorage.setItem("cartItems", JSON.stringify(state.cartItems));
-      localStorage.setItem("totalItems", JSON.stringify(state.totalItems));
-    },
+  if (!exists) {
+    state.cartItems.push(action.payload);
+  }
+},
 
     // ❌ Remove from Cart
     removeFromCart(state, action) {
