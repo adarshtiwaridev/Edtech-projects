@@ -40,6 +40,7 @@ const Dashboard = () => {
   const cardClass = isDark ? "bg-slate-900/50 border-slate-800" : "bg-white border-slate-200";
   const isTeacher = userData?.accountType === "Teacher" || userData?.role === "Teacher";
   const isAdmin = userData?.accountType === "Admin" || userData?.role === "Admin";
+  const isStudent=userData?.accountType==="Student"||userData?.role==="Student";
 
   if (!token) return null; // early return while redirecting
 
@@ -137,7 +138,7 @@ const Dashboard = () => {
         </section>
 
         {/* Stats & Activity Section */}
-        <section className="lg:col-span-2 space-y-6">
+        {isStudent &&( <section className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Stat Box 1 */}
             <div className={`p-6 border rounded-2xl ${cardClass} hover:border-blue-500/50 transition-colors`}>
@@ -175,7 +176,8 @@ const Dashboard = () => {
               <p className="text-xs text-slate-500">Course Progress: 66% Complete</p>
             </div>
           </div>
-        </section>
+        </section>)}
+       
 
       </main>
     </div>
