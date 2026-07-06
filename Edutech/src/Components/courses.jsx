@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -15,15 +15,16 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { addToCart } from '../slices/cartSlices';
+import { fetchAllCourses} from "../slices/courseSlice";
 
-const dummyCourses = [
-  { id: 1, title: 'React Modern Architecture', instructor: 'John Doe', price: 49, rating: 4.8, students: '12k', level: 'Intermediate', image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop' },
-  { id: 2, title: 'JavaScript Engine Internals', instructor: 'Jane Smith', price: 59, rating: 4.9, students: '8k', level: 'Advanced', image: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=800&auto=format&fit=crop' },
-  { id: 3, title: 'Applied Python for Data', instructor: 'Alice Johnson', price: 79, rating: 4.7, students: '15k', level: 'Beginner', image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&auto=format&fit=crop' },
-  { id: 4, title: 'Next.js 15 Fullstack Pro', instructor: 'Bob Brown', price: 99, rating: 5.0, students: '5k', level: 'Advanced', image: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=800&auto=format&fit=crop' },
-  { id: 5, title: 'Neural Networks Basics', instructor: 'Charlie Lee', price: 89, rating: 4.6, students: '3k', level: 'Intermediate', image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop' },
-  { id: 6, title: 'Design Systems with CSS', instructor: 'Diana Adams', price: 39, rating: 4.8, students: '22k', level: 'Beginner', image: 'https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=800&auto=format&fit=crop' },
-];
+// const dummyCourses = [
+//   { id: 1, title: 'React Modern Architecture', instructor: 'John Doe', price: 49, rating: 4.8, students: '12k', level: 'Intermediate', image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop' },
+//   { id: 2, title: 'JavaScript Engine Internals', instructor: 'Jane Smith', price: 59, rating: 4.9, students: '8k', level: 'Advanced', image: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=800&auto=format&fit=crop' },
+//   { id: 3, title: 'Applied Python for Data', instructor: 'Alice Johnson', price: 79, rating: 4.7, students: '15k', level: 'Beginner', image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&auto=format&fit=crop' },
+//   { id: 4, title: 'Next.js 15 Fullstack Pro', instructor: 'Bob Brown', price: 99, rating: 5.0, students: '5k', level: 'Advanced', image: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=800&auto=format&fit=crop' },
+//   { id: 5, title: 'Neural Networks Basics', instructor: 'Charlie Lee', price: 89, rating: 4.6, students: '3k', level: 'Intermediate', image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop' },
+//   { id: 6, title: 'Design Systems with CSS', instructor: 'Diana Adams', price: 39, rating: 4.8, students: '22k', level: 'Beginner', image: 'https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=800&auto=format&fit=crop' },
+// ];
 
 const Courses = () => {
   const dispatch = useDispatch();
@@ -41,6 +42,18 @@ const Courses = () => {
     }
     dispatch(addToCart(course));
   };
+
+  const CourseList = () => {
+  const dispatch = useDispatch();
+
+  const { courses, loading, error } = useSelector(
+    (state) => state.courses
+  );
+  console.log(courses);
+
+  useEffect(() => {
+    dispatch(fetchAllCourses());
+  }, [dispatch]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-500 py-20 px-6">
@@ -84,7 +97,7 @@ const Courses = () => {
 
         {/* Course Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {dummyCourses.map((course, idx) => {
+          {courses.map((course, idx) => {
             const existingCartItem = cartItems.find((item) => item.id === course.id);
             return (
             <motion.div
@@ -167,5 +180,6 @@ const Courses = () => {
     </div>
   );
 };
+}
 
 export default Courses;
