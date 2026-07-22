@@ -8,8 +8,8 @@ const {
   logout,
   changePassword,
   verifyOtp,
-
   deleteAccount,
+  refreshToken,
 } = require("../Controllers/Auths");
 
 const {
@@ -21,7 +21,9 @@ const {
 const { createContactus } = require("../Controllers/Contactus");
 
 const { auth } = require("../middleware/Auth");
-const rateLimit = require("../middleware/rateLimit");
+const { authLimiter, apiLimiter } = require("../middleware/rateLimit");
+const validate = require("../middleware/validate");
+const { sendOtpSchema, signupSchema, loginSchema, verifyOtpSchema } = require("../validations/authValidation");
 
 /* ================= SAFETY CHECK ================= */
 
@@ -31,12 +33,13 @@ if (typeof auth !== "function") {
 
 /* ================= AUTH ROUTES ================= */
 
-router.post("/login", login);
-router.post("/signup", signup);
-router.post("/sendotp", sendotp);
+router.post("/login", authLimiter, validate(loginSchema), login);
+router.post("/signup", authLimiter, validate(signupSchema), signup);
+router.post("/sendotp", authLimiter, validate(sendOtpSchema), sendotp);
 router.post("/logout", logout);
-router.post("/verify-otp", verifyOtp);
-router.post("/contactus", rateLimit, createContactus);
+router.post("/verify-otp", authLimiter, validate(verifyOtpSchema), verifyOtp);
+router.post("/refresh", authLimiter, refreshToken);
+router.post("/contactus", apiLimiter, createContactus);
 
 router.delete("/deleteAccount",  deleteAccount);
 

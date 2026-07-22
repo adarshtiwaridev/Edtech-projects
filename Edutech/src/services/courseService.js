@@ -1,192 +1,139 @@
-import {
-  deleteWithFallback,
-  getWithFallback,
-  postWithFallback,
-  putWithFallback,
-} from "./apiClient";
+import axiosInstance from "../api/axiosInstance";
+import { ENDPOINTS } from "../constants/endpoints";
 
-const normalizeCourse = (course) => ({
-  ...course,
-  id: course?._id || course?.id,
-  title: course?.courseName || course?.title || "Untitled",
-  description: course?.courseDescription || course?.description || "",
-  price: Number(course?.price || 0),
-  thumbnail:
-    course?.thumbnail ||
-    course?.Thumbnails ||
-    course?.thumbnailUrl ||
-    "/Images/background2.jpg",
-  level: course?.level || "Beginner",
-  category: course?.category || course?.categories || null,
-  studentsEnrolled: course?.studentsEnrolled || [],
-  studentsCount: Array.isArray(course?.studentsEnrolled) ? course.studentsEnrolled.length : Number(course?.studentsCount || 0),
-  sections: (course?.courseContent || course?.sections || []).map((section) => ({
-    id: section?._id || section?.id,
-    title: section?.sectionName || section?.title || "",
-    lectures: (section?.subsections || section?.lectures || []).map((lecture) => ({
-      id: lecture?._id || lecture?.id,
-      title: lecture?.title || "",
-      videoUrl: lecture?.videourl || lecture?.videoUrl || "",
-      notes: lecture?.description || lecture?.notes || "",
-    })),
-  })),
-  instructorName:
-    course?.instructorName ||
-    [course?.instructor?.firstName, course?.instructor?.lastName]
-      .filter(Boolean)
-      .join(" ") ||
-    "Instructor",
-});
-
-export const fetchAllCoursesApi = async () => {
-  const data = await getWithFallback([
-    "/api/course/all",
-    "/api/courses/getAllCourses",
-  ]);
-  const courses = data?.data || [];
-  return courses.map(normalizeCourse);
+export const createCourseApi = async (formData) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.CREATE_COURSE, formData);
+  return response.data;
 };
 
-export const fetchCourseDetailsApi = async (courseId) => {
-  const data = await postWithFallback(
-    ["/api/course/get/" + courseId, "/api/courses/getCourseDetails"],
-    { courseId }
-  );
-  return normalizeCourse(data?.data || {});
-};
-
-export const fetchCategoriesApi = async () => {
-  const data = await getWithFallback([
-    "/api/category/all",
-    "/api/courses/showAllCategories",
-  ]);
-  return data?.data || [];
-};
-
-export const createCategoryApi = async (payload) => {
-  const data = await postWithFallback(
-    ["/api/category/create", "/api/courses/createCategory"],
-    payload
-  );
-  return data?.data || null;
-};
-
-export const createCourseApi = async (coursePayload) => {
-  const formData = new FormData();
-  formData.append("courseName", coursePayload.title);
-  formData.append("courseDescription", coursePayload.description);
-  formData.append("whatyouwillLearn", coursePayload.whatYouWillLearn || "Learn in depth");
-  formData.append("price", String(coursePayload.price));
-  formData.append("categories", coursePayload.category);
-  if (coursePayload.thumbnailFile) {
-    formData.append("thumbnailFile", coursePayload.thumbnailFile);
-  }
-  if (coursePayload.level) {
-    formData.append("level", coursePayload.level);
-  }
-
-  const data = await postWithFallback(
-    ["/api/course/create", "/api/courses/createCourse"],
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
-
-  const created = data?.data || {};
-  return normalizeCourse(created);
-};
-
-export const updateCourseApi = async (courseId, payload) => {
-  const formData = new FormData();
-  formData.append("courseName", payload.title);
-  formData.append("courseDescription", payload.description);
-  formData.append("whatyouwillLearn", payload.whatYouWillLearn || "Learn in depth");
-  formData.append("price", String(payload.price));
-  formData.append("categories", payload.category);
-  if (payload.level) {
-    formData.append("level", payload.level);
-  }
-  if (payload.thumbnailFile) {
-    formData.append("thumbnailFile", payload.thumbnailFile);
-  }
-
-  const data = await putWithFallback(
-    [
-      `/api/course/update/${courseId}`,
-      `/api/courses/updateCourse/${courseId}`,
-    ],
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
-  return normalizeCourse(data?.data || payload);
+export const updateCourseApi = async (courseId, formData) => {
+  const response = await axiosInstance.put(`${ENDPOINTS.COURSE.UPDATE_COURSE}/${courseId}`, formData);
+  return response.data;
 };
 
 export const deleteCourseApi = async (courseId) => {
-  return deleteWithFallback([
-    `/api/course/delete/${courseId}`,
-    `/api/courses/deleteCourse/${courseId}`,
-  ]);
+  const response = await axiosInstance.delete(`${ENDPOINTS.COURSE.DELETE_COURSE}/${courseId}`);
+  return response.data;
 };
 
-export const createSectionApi = async (courseId, sectionName) => {
-  const data = await postWithFallback(
-    ["/api/course/section/create", "/api/courses/createSection"],
-    { courseId, sectionName }
-  );
-  return data?.updatedCourse || data?.data || null;
+export const fetchAllCoursesApi = async () => {
+  const response = await axiosInstance.get(ENDPOINTS.COURSE.GET_ALL_COURSES);
+  return response.data?.data || response.data;
 };
 
-export const createLectureApi = async ({ sectionId, title, videoUrl, notes }) => {
+export const fetchCourseDetailsApi = async (courseId) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.GET_COURSE_DETAILS, { courseId });
+  return response.data?.data || response.data;
+};
+
+export const createSectionApi = async (courseId, title) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.CREATE_SECTION, { courseId, sectionName: title });
+  return response.data;
+};
+
+export const updateSectionApi = async (data) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.UPDATE_SECTION, data);
+  return response.data;
+};
+
+export const deleteSectionApi = async (data) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.DELETE_SECTION, data);
+  return response.data;
+};
+
+export const createLectureApi = async (data) => {
+  // Use formData for lecture video upload
   const formData = new FormData();
-  formData.append("sectionId", sectionId);
-  formData.append("title", title);
-  formData.append("descptions", notes || "Lecture notes");
-  formData.append("timeDuration", "10");
-  if (videoUrl instanceof File) {
-    formData.append("video", videoUrl);
-  }
+  if (data.sectionId) formData.append("sectionId", data.sectionId);
+  if (data.title) formData.append("title", data.title);
+  if (data.videoUrl) formData.append("video", data.videoUrl); // assuming videoUrl is the File object from slice
+  if (data.notes) formData.append("description", data.notes);
+  
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.CREATE_SUBSECTION, formData);
+  return response.data;
+};
 
-  const data = await postWithFallback(
-    ["/api/course/lecture/create", "/api/courses/createSubSection"],
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
-  return data?.data || null;
+export const updateLectureApi = async (formData) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.UPDATE_SUBSECTION, formData);
+  return response.data;
+};
+
+export const deleteLectureApi = async (data) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.DELETE_SUBSECTION, data);
+  return response.data;
+};
+
+export const createCategoryApi = async (data) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.CREATE_CATEGORY, data);
+  return response.data;
+};
+
+export const fetchCategoriesApi = async () => {
+  const response = await axiosInstance.get(ENDPOINTS.COURSE.SHOW_ALL_CATEGORIES);
+  return response.data?.data || response.data;
+};
+
+export const getCategoryPageDetailsApi = async (categoryId) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.GET_CATEGORY_PAGE_DETAILS, { categoryId });
+  return response.data;
+};
+
+export const createRatingApi = async (data) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.CREATE_RATING, data);
+  return response.data;
+};
+
+export const getAverageRatingApi = async (courseId) => {
+  const response = await axiosInstance.get(ENDPOINTS.COURSE.GET_AVERAGE_RATING, { params: { courseId } });
+  return response.data;
 };
 
 export const fetchEnrolledCoursesApi = async () => {
-  const data = await getWithFallback([
-    "/api/enrolled-courses",
-    "/api/profiles/getEnrolledCourses",
-  ]);
-  const courses = data?.data || [];
-  return courses.map(normalizeCourse);
-};
-
-export const getRazorpayKeyApi = async () => {
-  const data = await getWithFallback([
-    "/api/payment/getRazorpayKey",
-    "/api/payment/key",
-  ]);
-  return data?.key;
+  const response = await axiosInstance.get(ENDPOINTS.PROFILE.GET_ENROLLED_COURSES);
+  return response.data?.data || [];
 };
 
 export const createOrderApi = async (courseId) => {
-  return postWithFallback(
-    ["/api/payment/create-order", "/api/payment/capturePayment"],
-    { courseId }
-  );
+  const response = await axiosInstance.post(ENDPOINTS.PAYMENT.CAPTURE_PAYMENT, { courses: [courseId] });
+  return response.data;
 };
 
-export const verifyRazorpayPaymentApi = async (payload) => {
-  return postWithFallback(
-    ["/api/payment/verify", "/api/payment/verifyPayment", "/api/payment/verifySignature"],
-    payload
-  );
+export const getRazorpayKeyApi = async () => {
+  const response = await axiosInstance.get(ENDPOINTS.PAYMENT.GET_RAZORPAY_KEY);
+  return response.data;
 };
 
-export const filterTeacherCourses = (courses, userId) => {
+export const verifyRazorpayPaymentApi = async (data) => {
+  const response = await axiosInstance.post(ENDPOINTS.PAYMENT.VERIFY_PAYMENT, data);
+  return response.data;
+};
+
+export const filterTeacherCourses = (courses, teacherId) => {
+  if (!courses || !Array.isArray(courses)) return [];
+  // Assumes course.instructor is either an ID string or an object with _id
   return courses.filter((course) => {
-    const instructorId = course?.instructor?._id || course?.instructor || null;
-    return instructorId && userId && String(instructorId) === String(userId);
+    const instId = course.instructor?._id || course.instructor;
+    return instId === teacherId;
   });
+};
+
+export const courseService = {
+  createCourse: createCourseApi,
+  updateCourse: updateCourseApi,
+  deleteCourse: deleteCourseApi,
+  getAllCourses: fetchAllCoursesApi,
+  getCourseDetails: fetchCourseDetailsApi,
+  createSection: createSectionApi,
+  updateSection: updateSectionApi,
+  deleteSection: deleteSectionApi,
+  createSubSection: createLectureApi,
+  updateSubSection: updateLectureApi,
+  deleteSubSection: deleteLectureApi,
+  createCategory: createCategoryApi,
+  showAllCategories: fetchCategoriesApi,
+  getCategoryPageDetails: getCategoryPageDetailsApi,
+  createRating: createRatingApi,
+  getAverageRating: getAverageRatingApi,
+  getRazorpayKey: getRazorpayKeyApi,
+  verifyRazorpayPayment: verifyRazorpayPaymentApi,
 };

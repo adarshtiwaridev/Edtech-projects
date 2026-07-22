@@ -83,7 +83,11 @@ exports.updateSubSection = async (req, res) => {
 
     // 5. If new video is provided, upload and update videourl
     if (video) {
-      const uploadDetails = await uploadOptimizedImage(video, "Kodemates-lecture");
+      const uploadDetails = await uploadOptimizedFile(
+        video.tempFilePath || video.path, 
+        "Kodemates-lecture",
+        { resource_type: "video" }
+      );
       subSectionDetails.videourl = uploadDetails.secure_url;
     }
 

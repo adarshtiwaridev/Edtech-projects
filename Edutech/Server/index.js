@@ -6,6 +6,7 @@ const userRoutes = require("./routes/User");
 const profileRoutes = require("./routes/Profile");
 const courseRoutes = require("./routes/Course");
 const paymentRoutes = require("./routes/Payment");
+const adminRoutes = require("./routes/Admin");
 
 
 
@@ -13,6 +14,10 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const cloudconnect = require("./config/cloudinary");
 const fileUpload = require("express-fileupload");
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
+const { errorHandler } = require("./middleware/errorHandler");
+
 /* ===================== LOAD ENV ===================== */
 dotenv.config();
 
@@ -20,6 +25,10 @@ dotenv.config();
 const app = express();
 
 /* ===================== MIDDLEWARE ===================== */
+// Security middlewares
+app.use(helmet());
+app.use(mongoSanitize());
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -54,12 +63,16 @@ app.use("/api/users", userRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/admin", adminRoutes);
 
 
 /* ===================== HEALTH CHECK ===================== */
 app.get("/", (req, res) => {
   res.send("✅ Backend is running on Render");
 });
+
+/* ===================== GLOBAL ERROR HANDLER ===================== */
+app.use(errorHandler);
 
 /* ===================== START SERVER ===================== */
 const PORT = process.env.PORT || 5000;

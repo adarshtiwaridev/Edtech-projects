@@ -1,130 +1,82 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import toast from 'react-hot-toast';
+import { Eye, EyeOff } from 'lucide-react';
+import { useSendOtp } from '../hooks/useAuth';
+
+const signupSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  mobile: z.string().regex(/^[0-9]{10}$/, 'Must be a valid 10-digit mobile number'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(6, 'Confirm password must be at least 6 characters'),
+  accountType: z.enum(['Student', 'Teacher', 'Admin']), // Or whatever roles are allowed
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
 const Signup = () => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    mobile: '',
-    password: '',
-    confirmPassword: '',
-    accountType: 'Student'
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const navigate = useNavigate();
+  const { mutate: sendOtp, isPending: isLoading } = useSendOtp();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      mobile: '',
+      password: '',
+      confirmPassword: '',
+      accountType: 'Student',
+    },
+  });
+
+  const onSubmit = (data) => {
+    localStorage.setItem("signupData", JSON.stringify(data));
+    sendOtp(data.email);
   };
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    if (!formData.mobile) newErrors.mobile = 'Mobile number is required';
-    else if (!/^[0-9]{10}$/.test(formData.mobile)) {
-      newErrors.mobile = 'Please enter a valid 10-digit mobile number';
-    }
-    if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.email) {
-      setErrors({ email: "Email is required" });
-      return;
-    }
-
-    try {
-       setIsLoading(true);
-      const res = await fetch(`http://localhost:5000/api/users/sendotp`,
-        // `${import.meta.env.VITE_API_URL}/api/users/sendotp`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: formData.email }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErrors({ apiError: data.message });
-        return;
-      }
-
-      // Save formData in localStorage (prevents refresh issue)
-      localStorage.setItem("signupData", JSON.stringify(formData));
-
-      // Navigate to OTP page
-      navigate("/VerifyOtp");
-
-    } catch (error) {
-      setErrors({ apiError: "Server not responding. Try again." });
-    }
-  };
-
-
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center flex items-center justify-center"
+      className="min-h-screen bg-cover bg-center flex items-center justify-center py-10"
       style={{ backgroundImage: "url('/Images/background2.jpg')" }}
     >
-      <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-3xl shadow-lg max-w-xl w-full h-auto px-6 py-8 mx-auto my-20">
+      <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-lg max-w-xl w-full h-auto px-6 py-8 mx-auto mt-10">
         <h2 className="text-4xl font-extrabold text-white mb-6 text-center">Create Your Account</h2>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-white text-sm font-medium">First Name</label>
               <input
                 type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
+                {...register('firstName')}
                 placeholder="John"
-                className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900"
               />
-              {errors.firstName && <p className="text-red-400 text-xs mt-1">{errors.firstName}</p>}
+              {errors.firstName && <p className="text-red-400 text-xs mt-1">{errors.firstName.message}</p>}
             </div>
 
             <div>
               <label className="block text-white text-sm font-medium">Last Name</label>
               <input
                 type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
+                {...register('lastName')}
                 placeholder="Doe"
-                className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900"
               />
-              {errors.lastName && <p className="text-red-400 text-xs mt-1">{errors.lastName}</p>}
+              {errors.lastName && <p className="text-red-400 text-xs mt-1">{errors.lastName.message}</p>}
             </div>
           </div>
 
@@ -132,126 +84,98 @@ const handleSubmit = async (e) => {
             <label className="block text-white text-sm font-medium">Email</label>
             <input
               type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
+              {...register('email')}
               placeholder="example@mail.com"
-              className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900"
             />
-            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
           </div>
 
           <div>
             <label className="block text-white text-sm font-medium">Mobile Number</label>
             <input
               type="tel"
-              name="mobile"
-              value={formData.mobile}
-              onChange={handleChange}
+              {...register('mobile')}
               placeholder="9876543210"
-              className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900"
             />
-            {errors.mobile && <p className="text-red-400 text-xs mt-1">{errors.mobile}</p>}
+            {errors.mobile && <p className="text-red-400 text-xs mt-1">{errors.mobile.message}</p>}
           </div>
 
           <div>
             <label className="block text-white text-sm font-medium">Account Type</label>
             <select
-              name="accountType"
-              value={formData.accountType}
-              onChange={handleChange}
-              className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              {...register('accountType')}
+              className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900"
             >
               <option value="Student">Student</option>
               <option value="Teacher">Teacher</option>
             </select>
+            {errors.accountType && <p className="text-red-400 text-xs mt-1">{errors.accountType.message}</p>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Password Field */}
             <div className="relative">
               <label className="block text-white text-sm font-medium">Password</label>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(prev => !prev)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 my-3 text-gray-600"
-              >
-                {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10S6.477-1 12-1s10 4.477 10 10a10.05 10.05 0 01-.875 4.825M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.085.244-.18.482-.283.717M15 12a3 3 0 00-6 0" />
-                  </svg>
-                )}
-              </button>
-              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
+              <div className="relative mt-1">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  {...register('password')}
+                  placeholder="Enter password"
+                  className="block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
             </div>
 
-            {/* Confirm Password Field */}
             <div className="relative">
               <label className="block text-white text-sm font-medium">Confirm Password</label>
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Confirm your password"
-                className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(prev => !prev)}
-                className="absolute right-3 top-[50%] my-3 transform -translate-y-1/2 text-gray-600"
-              >
-                {showConfirmPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mt-3" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10S6.477-1 12-1s10 4.477 10 10a10.05 10.05 0 01-.875 4.825M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.085.244-.18.482-.283.717M15 12a3 3 0 00-6 0" />
-                  </svg>
-                )}
-              </button>
-              {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>}
+              <div className="relative mt-1">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  {...register('confirmPassword')}
+                  placeholder="Confirm password"
+                  className="block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword.message}</p>}
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white py-3 mt-4 rounded-lg hover:bg-blue-700 transition-all disabled:bg-blue-400 disabled:cursor-not-allowed flex justify-center items-center"
           >
-            {isLoading ? "Sending Otp..." : "Create Account"}
+            {isLoading ? (
+              <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            ) : null}
+            {isLoading ? 'Sending OTP...' : 'Create Account'}
           </button>
         </form>
 
         <p className="mt-6 text-center text-white">
           Already have an account?{' '}
-          <a href="/login" className="underline hover:text-blue-300">
+          <Link to="/login" className="underline hover:text-blue-300">
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </div>
@@ -259,3 +183,4 @@ const handleSubmit = async (e) => {
 };
 
 export default Signup;
+

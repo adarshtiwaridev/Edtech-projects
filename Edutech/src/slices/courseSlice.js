@@ -76,13 +76,28 @@ export const createCourse = createAsyncThunk(
   "course/createCourse",
   async (payload, { rejectWithValue }) => {
     try {
-      const createdCourse = await createCourseApi(payload);
+      const formData = new FormData();
+      formData.append("courseName", payload.title);
+      formData.append("courseDescription", payload.description);
+      formData.append("price", payload.price);
+      formData.append("category", payload.category);
+      formData.append("level", payload.level);
+      if (payload.thumbnailFile) {
+        formData.append("thumbnailFile", payload.thumbnailFile);
+      }
+
+      const createdCourse = await createCourseApi(formData);
+      const courseId = createdCourse?.data?._id;
+
+      if (!courseId) {
+        throw new Error("Failed to get course ID from response");
+      }
 
       if (Array.isArray(payload.sections) && payload.sections.length > 0) {
         for (const section of payload.sections) {
           if (!section?.title?.trim()) continue;
-          const sectionResponse = await createSectionApi(createdCourse.id, section.title);
-          const populatedSections = sectionResponse?.courseContent || [];
+          const sectionResponse = await createSectionApi(courseId, section.title);
+          const populatedSections = sectionResponse?.updatedCourse?.courseContent || [];
           const latestSection = populatedSections[populatedSections.length - 1];
 
           if (latestSection?._id && Array.isArray(section.lectures)) {
@@ -102,7 +117,7 @@ export const createCourse = createAsyncThunk(
         }
       }
 
-      return await fetchCourseDetailsApi(createdCourse.id);
+      return await fetchCourseDetailsApi(courseId);
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -124,7 +139,16 @@ export const updateCourse = createAsyncThunk(
   "course/updateCourse",
   async ({ courseId, payload }, { rejectWithValue }) => {
     try {
-      return await updateCourseApi(courseId, payload);
+      const formData = new FormData();
+      if (payload.title) formData.append("courseName", payload.title);
+      if (payload.description) formData.append("courseDescription", payload.description);
+      if (payload.price !== undefined) formData.append("price", payload.price);
+      if (payload.category) formData.append("category", payload.category);
+      if (payload.level) formData.append("level", payload.level);
+      if (payload.thumbnailFile) {
+        formData.append("thumbnailFile", payload.thumbnailFile);
+      }
+      return await updateCourseApi(courseId, formData);
     } catch (error) {
       return rejectWithValue(error.message);
     }

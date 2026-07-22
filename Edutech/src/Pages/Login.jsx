@@ -1,85 +1,35 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setToken, setAuthUser as setAuthUser } from '../slices/authSlice';
-import { setProfileUser as setProfileUser } from '../slices/profileSlice';
-import toast from "react-hot-toast";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import toast from 'react-hot-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
+import { setToken, setAuthUser } from '../slices/authSlice';
+import { setProfileUser } from '../slices/profileSlice';
+import { useLogin } from '../hooks/useAuth';
+
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
+  const { mutate: login, isPending: isLoading } = useLogin();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.email) newErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      setIsLoading(true);
-      try {
-        
-        const response = await fetch(`http://localhost:5000/api/users/login`, {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(formData)
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          // Dispatch token and user to Redux store (Redux Persist will save it)
-          dispatch(setToken(data.token));
-          dispatch(setAuthUser(data.user));
-          // also populate profile slice for immediate use
-          dispatch(setProfileUser(data.user));
-          
-          toast.success(data.message || 'Login successful!');
-          
-          // Redirect to home page
-          navigate('/');
-        } else {
-          toast.error(data.message || 'Login failed. Please try again.');
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        toast.error('An error occurred during login. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  const onSubmit = (data) => {
+    login(data);
   };
 
   return (
@@ -87,80 +37,73 @@ const Login = () => {
       className="min-h-screen bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: "url('/Images/background2.jpg')" }}
     >
-      <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-3xl shadow-lg max-w-xl w-full h-auto px-6 py-8 mx-auto my-20">
-        <div className=" flex flex-row mx-auto justify-around items-center">
-            <img src="/Images/logo2.png" alt="" srcset="" className='w-34 h-28'/>
-        <h2 className="text-4xl font-extrabold text-white mb-6 text-center">Welcome Back</h2>
-</div> 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+      <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-lg max-w-xl w-full h-auto px-6 py-8 mx-auto my-20">
+        <div className="flex flex-row mx-auto justify-around items-center">
+          <img src="/Images/logo2.png" alt="Logo" className="w-34 h-28" />
+          <h2 className="text-4xl font-extrabold text-white mb-6 text-center">Welcome Back</h2>
+        </div>
+
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
             <label className="block text-white text-sm font-medium">Email Address</label>
             <input
               type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
+              {...register('email')}
               placeholder="example@mail.com"
-              className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900"
             />
-            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
           </div>
 
-        <div className="relative">
-  <input
-    type={showPassword ? "text" : "password"}
-    name="password"
-    value={formData.password}
-    onChange={handleChange}
-    placeholder="Enter your password"
-    className="mt-1 block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-  />
+          <div className="relative">
+            <label className="block text-white text-sm font-medium">Password</label>
+            <div className="relative mt-1">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                {...register('password')}
+                placeholder="Enter your password"
+                className="block w-full px-4 py-2 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
 
-
-<div className="flex justify-end">
-  <a
-    href="/Forgot-password"
-    className="text-sm text-blue-300 hover:text-blue-400 transition-all"
-  >
-    Forgot Password?
-  </a>
-</div>
-
-              
-
-  <button
-    type="button"
-    onClick={() => setShowPassword(prev => !prev)}
-    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
-  >
-    {showPassword ? (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10S6.477-1 12-1s10 4.477 10 10a10.05 10.05 0 01-.875 4.825M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ) : (
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.085.244-.18.482-.283.717M15 12a3 3 0 00-6 0" />
-      </svg>
-    )}
-  </button>
-</div>
-
+            <div className="flex justify-end mt-2">
+              <Link
+                to="/Forgot-password"
+                className="text-sm text-blue-300 hover:text-blue-400 transition-all"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+          </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all disabled:bg-blue-400 disabled:cursor-not-allowed flex justify-center items-center"
           >
+            {isLoading ? (
+              <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            ) : null}
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
         <p className="mt-6 text-center text-white">
           Don’t have an account?{' '}
-          <a href="/signup" className="underline hover:text-blue-300">
+          <Link to="/signup" className="underline hover:text-blue-300">
             Create Account
-          </a>
+          </Link>
         </p>
       </div>
     </div>
@@ -168,3 +111,4 @@ const Login = () => {
 };
 
 export default Login;
+

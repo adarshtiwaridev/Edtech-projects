@@ -77,7 +77,7 @@ const Dashboard = () => {
 
           {isTeacher && (
             <button
-              onClick={() => navigate('/dashboard/create-course')}
+              onClick={() => navigate('/dashboard/teacher/courses/create')}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
             >
               <PlusSquare size={16} />
@@ -93,17 +93,6 @@ const Dashboard = () => {
             Open Cart
           </button>
 
-          {/* theme toggle pill (same as navbar) */}
-          <div 
-            onClick={toggleTheme}
-            className="relative w-14 h-7 bg-gray-200 dark:bg-neutral-800 rounded-full cursor-pointer p-1 transition-colors duration-500 ring-1 ring-inset ring-black/5 dark:ring-white/10"
-          >
-            <div className={`absolute top-1 left-1 w-5 h-5 rounded-full shadow-md transform transition-transform duration-500 flex items-center justify-center ${
-              isDark ? "translate-x-7 bg-blue-600" : "translate-x-0 bg-white"
-            }`}>
-              {isDark ? <Moon size={12} className="text-white" /> : <Sun size={12} className="text-yellow-500" />}
-            </div>
-          </div>
         </div>
       </header>
 

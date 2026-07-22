@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema({
   mobile: { type: String, required: true, },
   password: { type: String, required: true },
   accountType: { type: String, enum: ["Admin", "Student", "Teacher"], default: "Student" },
+  status: { type: String, enum: ["Pending", "Approved", "Rejected", "Suspended"], default: "Approved" },
+  rejectionReason: { type: String, default: "" },
   additionalDetails: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Profile",

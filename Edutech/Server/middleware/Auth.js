@@ -40,8 +40,17 @@ exports.student = (req, res, next) => {
 };
 
 exports.instructor = (req, res, next) => {
-  if (req.user.role !== "Teacher") {
+  if (req.user.role !== "Teacher" && req.user.role !== "Instructor") {
     return res.status(403).json({ success: false, message: "Instructor only route" });
+  }
+  if (req.user.status === "Pending") {
+    return res.status(403).json({ success: false, message: "Your instructor account is pending approval by an admin." });
+  }
+  if (req.user.status === "Rejected") {
+    return res.status(403).json({ success: false, message: "Your instructor account was rejected." });
+  }
+  if (req.user.status === "Suspended") {
+    return res.status(403).json({ success: false, message: "Your instructor account is suspended." });
   }
   next();
 };

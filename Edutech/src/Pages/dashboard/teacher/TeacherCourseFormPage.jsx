@@ -160,7 +160,7 @@ const TeacherCourseFormPage = () => {
       if (!isEdit) {
         setForm(createEmptyForm());
       }
-      navigate("/dashboard/courses");
+      navigate("/dashboard/teacher/courses");
     } else {
       toast.error(result.payload || "Unable to save course");
     }

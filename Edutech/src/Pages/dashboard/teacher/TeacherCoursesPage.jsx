@@ -33,7 +33,7 @@ const TeacherCoursesPage = () => {
   const handleDelete = async () => {
     if (!deletingCourse) return;
     setIsDeleting(true);
-    const result = await dispatch(deleteCourse(deletingCourse.id));
+    const result = await dispatch(deleteCourse(deletingCourse._id));
     if (!result.error) {
       toast.success("Course deleted successfully");
     } else {
@@ -47,7 +47,7 @@ const TeacherCoursesPage = () => {
     <DashboardLayout title="Manage Courses">
       <div className="flex justify-end">
         <button
-          onClick={() => navigate("/dashboard/create-course")}
+          onClick={() => navigate("/dashboard/teacher/courses/create")}
           className="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700"
         >
           Create Course
@@ -72,12 +72,12 @@ const TeacherCoursesPage = () => {
         >
           {teacherCourses.map((course) => (
             <CourseCard
-              key={course.id}
+              key={course._id}
               course={course}
               isTeacherView
-              onEdit={(selected) => navigate(`/dashboard/courses/${selected.id}/edit`, { state: { course: selected } })}
+              onEdit={(selected) => navigate(`/dashboard/teacher/courses/${selected._id}/edit`, { state: { course: selected } })}
               onDelete={setDeletingCourse}
-              detailPath={`/dashboard/student/course/${course.id}`}
+              detailPath={`/dashboard/student/course/${course._id}`}
             />
           ))}
         </motion.div>
