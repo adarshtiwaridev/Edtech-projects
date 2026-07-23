@@ -24,8 +24,9 @@ const StudentBrowseCoursesPage = () => {
 
   const filteredCourses = useMemo(() => {
     return allCourses.filter((course) => {
-      const title = course.title.toLowerCase();
-      const matchesSearch = !search || title.includes(search.toLowerCase());
+      const title = (course.title || course.courseName || "").toLowerCase();
+      const description = (course.description || course.courseDescription || "").toLowerCase();
+      const matchesSearch = !search || title.includes(search.toLowerCase()) || description.includes(search.toLowerCase());
       const categoryId = course?.category?._id || course?.category || course?.categories?._id || course?.categories;
       const matchesCategory = !categoryFilter || String(categoryId) === String(categoryFilter);
       const matchesLevel = !levelFilter || course.level === levelFilter;

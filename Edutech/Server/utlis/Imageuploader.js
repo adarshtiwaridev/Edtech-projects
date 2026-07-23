@@ -17,23 +17,36 @@ cloudinary.config({
  */
 const uploadOptimizedFile = async (filePath, folderName, options = {}) => {
   try {
-    const result = await cloudinary.uploader.upload(filePath, {
+    const uploadOptions = {
       folder: folderName || "uploads",
-      resource_type: options.resource_type || "auto", // auto detects image/video/raw
+      resource_type: options.resource_type || "auto",
+    };
 
-      // Optimizations only for images
-      ...(options.resource_type === "image" && {
-        height: options.height || 600,
-        width: options.width || 600,
-        crop: options.crop || "fill",
-        quality: options.quality || "auto",
-        format: options.format || "webp",
-      }),
-    });
+    if (options.resource_type === "image") {
+      if (options.height) uploadOptions.height = options.height;
+      if (options.width) uploadOptions.width = options.width;
+      if (options.crop) uploadOptions.crop = options.crop;
+      if (options.quality) uploadOptions.quality = options.quality;
+      if (options.format) uploadOptions.format = options.format;
+    }
+
+    const result = await cloudinary.uploader.upload(filePath, uploadOptions);
     return result;
   } catch (error) {
-    console.error("Cloudinary Upload Error:", error);
-    throw new Error("File upload failed");
+    console.error("Cloudinary Upload Error:", error?.message || error);
+    // If specific resource_type upload failed (e.g. video format error), try fallback auto
+    if (options.resource_type && options.resource_type !== "auto") {
+      try {
+        const fallbackResult = await cloudinary.uploader.upload(filePath, {
+          folder: folderName || "uploads",
+          resource_type: "auto",
+        });
+        return fallbackResult;
+      } catch (fallbackError) {
+        console.error("Cloudinary Fallback Upload Error:", fallbackError?.message || fallbackError);
+      }
+    }
+    throw new Error(`Cloudinary upload failed: ${error?.message || "Invalid file or credentials"}`);
   }
 };
 
@@ -47,8 +60,8 @@ const deleteFileFromCloudinary = async (publicId, resource_type = "image") => {
     const result = await cloudinary.uploader.destroy(publicId, { resource_type });
     return result;
   } catch (error) {
-    console.error("Cloudinary Delete Error:", error);
-    throw new Error("File deletion failed");
+    console.error("Cloudinary Delete Error:", error?.message || error);
+    throw new Error(`File deletion failed: ${error?.message || error}`);
   }
 };
 

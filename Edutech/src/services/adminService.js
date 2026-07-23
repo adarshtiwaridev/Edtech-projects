@@ -9,6 +9,7 @@ export const ENDPOINTS = {
     DELETE_USER: (id) => `/admin/user/${id}`,
     COURSES: "/admin/courses",
     UPDATE_COURSE_STATUS: "/admin/course/status",
+    DELETE_COURSE: (id) => `/admin/course/${id}`,
   },
 };
 
@@ -44,5 +45,10 @@ export const fetchAllCoursesAdminApi = async (params) => {
 
 export const updateCourseStatusAdminApi = async (courseId, status) => {
   const response = await axiosInstance.put(ENDPOINTS.ADMIN.UPDATE_COURSE_STATUS, { courseId, status });
+  return response.data?.data || response.data;
+};
+
+export const deleteCourseAdminApi = async (courseId) => {
+  const response = await axiosInstance.delete(ENDPOINTS.ADMIN.DELETE_COURSE(courseId));
   return response.data?.data || response.data;
 };

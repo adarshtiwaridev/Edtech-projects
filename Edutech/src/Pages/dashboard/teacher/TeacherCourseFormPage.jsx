@@ -67,10 +67,12 @@ const TeacherCourseFormPage = () => {
     const hasPrice = Number(form.price) >= 0 && form.price !== "";
     const hasThumbnail = isEdit || Boolean(form.thumbnailFile);
     const validSections = form.sections.every((section) => {
-      if (!section.title?.trim()) return false;
+      // If section title is blank, treat as optional draft section
+      if (!section.title?.trim()) return true;
       return section.lectures.every((lecture) => {
-        if (!lecture.title?.trim()) return false;
-        return isEdit ? true : lecture.videoFile instanceof File;
+        // If lecture title is blank, treat as optional draft lecture
+        if (!lecture.title?.trim()) return true;
+        return isEdit ? true : (lecture.videoFile instanceof File || Boolean(lecture.videoUrl));
       });
     });
     return form.title.trim() && form.description.trim() && hasPrice && form.category && hasThumbnail && validSections;

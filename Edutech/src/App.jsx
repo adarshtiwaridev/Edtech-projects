@@ -27,6 +27,10 @@ import Cart from "./Pages/dashboard/Cart";
 import TeacherCoursesPage from "./Pages/dashboard/teacher/TeacherCoursesPage";
 import TeacherCourseFormPage from "./Pages/dashboard/teacher/TeacherCourseFormPage";
 import AdminCategoriesPage from "./Pages/dashboard/admin/AdminCategoriesPage";
+import AdminDashboardPage from "./Pages/dashboard/admin/AdminDashboardPage";
+import AdminCoursesPage from "./Pages/dashboard/admin/AdminCoursesPage";
+import AdminUsersPage from "./Pages/dashboard/admin/AdminUsersPage";
+import AdminTeachersPage from "./Pages/dashboard/admin/AdminTeachersPage";
 import StudentBrowseCoursesPage from "./Pages/dashboard/student/StudentBrowseCoursesPage";
 import StudentCourseDetailsPage from "./Pages/dashboard/student/StudentCourseDetailsPage";
 import StudentMyCoursesPage from "./Pages/dashboard/student/StudentMyCoursesPage";
@@ -71,10 +75,42 @@ function App() {
 
         {/* Admin Routes */}
         <Route
+          path="admin"
+          element={
+            <RoleGuard allowedRoles={["Admin"]}>
+              <AdminDashboardPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="admin/courses"
+          element={
+            <RoleGuard allowedRoles={["Admin"]}>
+              <AdminCoursesPage />
+            </RoleGuard>
+          }
+        />
+        <Route
           path="admin/categories"
           element={
             <RoleGuard allowedRoles={["Admin"]}>
               <AdminCategoriesPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="admin/users"
+          element={
+            <RoleGuard allowedRoles={["Admin"]}>
+              <AdminUsersPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="admin/teachers"
+          element={
+            <RoleGuard allowedRoles={["Admin"]}>
+              <AdminTeachersPage />
             </RoleGuard>
           }
         />

@@ -33,14 +33,16 @@ exports.auth = (req, res, next) => {
 
 // ------------------ ROLE CHECKERS ------------------
 exports.student = (req, res, next) => {
-  if (req.user.role !== "Student") {
+  const role = req.user?.role || req.user?.accountType;
+  if (role !== "Student" && role !== "Admin") {
     return res.status(403).json({ success: false, message: "Student only route" });
   }
   next();
 };
 
 exports.instructor = (req, res, next) => {
-  if (req.user.role !== "Teacher" && req.user.role !== "Instructor") {
+  const role = req.user?.role || req.user?.accountType;
+  if (role !== "Teacher" && role !== "Instructor" && role !== "Admin") {
     return res.status(403).json({ success: false, message: "Instructor only route" });
   }
   if (req.user.status === "Pending") {
@@ -56,7 +58,8 @@ exports.instructor = (req, res, next) => {
 };
 
 exports.admin = (req, res, next) => {
-  if (req.user.role !== "Admin") {
+  const role = req.user?.role || req.user?.accountType;
+  if (role !== "Admin") {
     return res.status(403).json({ success: false, message: "Admin only route" });
   }
   next();

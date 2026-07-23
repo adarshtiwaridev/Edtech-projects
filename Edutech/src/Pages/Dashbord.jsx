@@ -155,14 +155,21 @@ const Dashboard = () => {
           <div className={`p-6 border rounded-2xl ${cardClass}`}>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Clock size={18} className="text-blue-500" />
-              Recent Activity
+              Learning Summary
             </h3>
             <div className="space-y-4">
-              <p className="text-sm text-slate-500 italic">Joined on {new Date(userData?.createdAt).toLocaleDateString()}</p>
-              <div className={`h-2 w-full rounded-full ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>
-                <div className="h-full bg-blue-500 rounded-full w-2/3 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+              <p className="text-sm text-slate-500 italic">Member since {new Date(userData?.createdAt).toLocaleDateString()}</p>
+              <div className={`h-2.5 w-full rounded-full ${isDark ? 'bg-slate-800' : 'bg-slate-200'} overflow-hidden`}>
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                  style={{ width: `${(userData?.courses?.length || 0) > 0 ? 100 : 0}%` }}
+                ></div>
               </div>
-              <p className="text-xs text-slate-500">Course Progress: 66% Complete</p>
+              <p className="text-xs text-slate-500">
+                {userData?.courses?.length > 0
+                  ? `${userData.courses.length} active course${userData.courses.length > 1 ? 's' : ''} enrolled`
+                  : "No courses enrolled yet. Browse available courses to start learning."}
+              </p>
             </div>
           </div>
         </section>)}

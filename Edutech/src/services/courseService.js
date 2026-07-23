@@ -16,14 +16,48 @@ export const deleteCourseApi = async (courseId) => {
   return response.data;
 };
 
+export const normalizeCourse = (course) => {
+  if (!course) return course;
+  const courseObj = typeof course.toObject === "function" ? course.toObject() : course;
+  const id = courseObj._id || courseObj.id;
+  const title = courseObj.courseName || courseObj.title || "Untitled Course";
+  const description = courseObj.courseDescription || courseObj.description || "";
+  const thumbnail = courseObj.thumbnail || courseObj.Thumbnails || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800";
+  const instructorName =
+    courseObj.instructorName ||
+    [courseObj.instructor?.firstName, courseObj.instructor?.lastName].filter(Boolean).join(" ") ||
+    "Instructor";
+
+  return {
+    ...courseObj,
+    id,
+    _id: id,
+    title,
+    courseName: title,
+    description,
+    courseDescription: description,
+    thumbnail,
+    Thumbnails: thumbnail,
+    image: thumbnail,
+    instructor: instructorName,
+    instructorName,
+    studentsCount: courseObj.studentsEnrolled?.length || courseObj.studentsCount || 0,
+  };
+};
+
 export const fetchAllCoursesApi = async () => {
   const response = await axiosInstance.get(ENDPOINTS.COURSE.GET_ALL_COURSES);
-  return response.data?.data || response.data;
+  const rawData = response.data?.data || response.data;
+  if (Array.isArray(rawData)) {
+    return rawData.map(normalizeCourse);
+  }
+  return rawData;
 };
 
 export const fetchCourseDetailsApi = async (courseId) => {
   const response = await axiosInstance.post(ENDPOINTS.COURSE.GET_COURSE_DETAILS, { courseId });
-  return response.data?.data || response.data;
+  const rawData = response.data?.data || response.data;
+  return normalizeCourse(rawData);
 };
 
 export const createSectionApi = async (courseId, title) => {
@@ -48,6 +82,7 @@ export const createLectureApi = async (data) => {
   if (data.title) formData.append("title", data.title);
   if (data.videoUrl) formData.append("video", data.videoUrl); // assuming videoUrl is the File object from slice
   if (data.notes) formData.append("description", data.notes);
+  if (data.timeDuration) formData.append("timeDuration", data.timeDuration);
   
   const response = await axiosInstance.post(ENDPOINTS.COURSE.CREATE_SUBSECTION, formData);
   return response.data;
@@ -94,13 +129,13 @@ export const fetchEnrolledCoursesApi = async () => {
 };
 
 export const createOrderApi = async (courseId) => {
-  const response = await axiosInstance.post(ENDPOINTS.PAYMENT.CAPTURE_PAYMENT, { courses: [courseId] });
+  const response = await axiosInstance.post(ENDPOINTS.PAYMENT.CAPTURE_PAYMENT, { courseId, courses: [courseId] });
   return response.data;
 };
 
 export const getRazorpayKeyApi = async () => {
   const response = await axiosInstance.get(ENDPOINTS.PAYMENT.GET_RAZORPAY_KEY);
-  return response.data;
+  return response.data?.key || response.data;
 };
 
 export const verifyRazorpayPaymentApi = async (data) => {
@@ -108,12 +143,21 @@ export const verifyRazorpayPaymentApi = async (data) => {
   return response.data;
 };
 
+export const updateCourseProgressApi = async (data) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.UPDATE_COURSE_PROGRESS, data);
+  return response.data;
+};
+
+export const getCourseProgressApi = async (courseId) => {
+  const response = await axiosInstance.post(ENDPOINTS.COURSE.GET_COURSE_PROGRESS, { courseId });
+  return response.data?.data || response.data;
+};
+
 export const filterTeacherCourses = (courses, teacherId) => {
   if (!courses || !Array.isArray(courses)) return [];
-  // Assumes course.instructor is either an ID string or an object with _id
   return courses.filter((course) => {
-    const instId = course.instructor?._id || course.instructor;
-    return instId === teacherId;
+    const instId = course.instructor?._id || course.instructor?.id || course.instructor;
+    return String(instId) === String(teacherId);
   });
 };
 
@@ -136,4 +180,6 @@ export const courseService = {
   getAverageRating: getAverageRatingApi,
   getRazorpayKey: getRazorpayKeyApi,
   verifyRazorpayPayment: verifyRazorpayPaymentApi,
+  updateCourseProgress: updateCourseProgressApi,
+  getCourseProgress: getCourseProgressApi,
 };

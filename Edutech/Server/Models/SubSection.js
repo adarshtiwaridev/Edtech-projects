@@ -8,13 +8,13 @@ const SubSectionSchema = new mongoose.Schema({
         trim: true
     },
     timeDuration: {
-        type: Number,
-        required: true,
-        min: 0
+        type: String,
+        default: "0",
+        trim: true
     },
     description: {
         type: String,
-        required: true,
+        default: "",
         trim: true
     },
     videourl: {

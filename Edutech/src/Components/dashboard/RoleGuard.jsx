@@ -23,7 +23,7 @@ const RoleGuard = ({ allowedRoles = [], children }) => {
     );
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(currentRole)) {
+  if (allowedRoles.length > 0 && currentRole !== "Admin" && !allowedRoles.includes(currentRole)) {
     return <Navigate to="/dashboard" replace />;
   }
 

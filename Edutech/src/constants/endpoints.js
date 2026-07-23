@@ -38,6 +38,8 @@ export const ENDPOINTS = {
     GET_CATEGORY_PAGE_DETAILS: "/courses/getCategoryPageDetails",
     CREATE_RATING: "/courses/createRating",
     GET_AVERAGE_RATING: "/courses/getAverageRating",
+    UPDATE_COURSE_PROGRESS: "/courses/updateCourseProgress",
+    GET_COURSE_PROGRESS: "/courses/getCourseProgress",
   },
   PAYMENT: {
     GET_RAZORPAY_KEY: "/payment/getRazorpayKey",

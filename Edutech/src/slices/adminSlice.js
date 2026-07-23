@@ -87,6 +87,18 @@ export const updateCourseStatusAdmin = createAsyncThunk(
   }
 );
 
+export const deleteCourseAdmin = createAsyncThunk(
+  "admin/deleteCourseAdmin",
+  async (courseId, { rejectWithValue }) => {
+    try {
+      await deleteCourseAdminApi(courseId);
+      return courseId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const initialState = {
   stats: null,
   charts: null,
@@ -165,6 +177,10 @@ const adminSlice = createSlice({
         if (index !== -1) {
           state.courses[index] = updatedCourse;
         }
+      })
+      // Delete Course Admin
+      .addCase(deleteCourseAdmin.fulfilled, (state, action) => {
+        state.courses = state.courses.filter((c) => c._id !== action.payload);
       });
   },
 });

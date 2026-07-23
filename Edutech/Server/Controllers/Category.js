@@ -13,7 +13,6 @@ exports.createCategory = async (req, res) => {
       });
     }
 
-    // check if category already exists
     const existingCategory = await Category.findOne({ categoryName });
     if (existingCategory) {
       return res.status(409).json({
@@ -22,7 +21,6 @@ exports.createCategory = async (req, res) => {
       });
     }
 
-    // create category
     const category = await Category.create({
       categoryName,
       description,
@@ -63,7 +61,7 @@ exports.showAllCategories = async (req, res) => {
 // category page details
 exports.categoryPageDetails = async (req, res) => {
   try {
-    const { categoryId } = req.body;
+    const categoryId = req.body.categoryId || req.query.categoryId;
 
     if (!categoryId) {
       return res.status(400).json({
@@ -72,7 +70,6 @@ exports.categoryPageDetails = async (req, res) => {
       });
     }
 
-    // check if category exists
     const selectedCategory = await Category.findById(categoryId).populate({
       path: "courses",
       populate: {
@@ -88,9 +85,12 @@ exports.categoryPageDetails = async (req, res) => {
       });
     }
 
-    // fetch other categories (for sidebar / suggestions)
     const otherCategories = await Category.find({ _id: { $ne: categoryId } })
       .select("categoryName description");
+
+    const topSellingCourses = await Course.find({ category: categoryId })
+      .sort({ studentsEnrolled: -1 })
+      .limit(10);
 
     return res.status(200).json({
       success: true,
@@ -98,19 +98,9 @@ exports.categoryPageDetails = async (req, res) => {
       data: {
         selectedCategory,
         otherCategories,
+        topSellingCourses,
       },
     });
-
-    //get top selling courses in this category
-      const topSellingCourses =  await Course.find({ category: categoryId })
-      .sort({ studentsEnrolled: -1 })
-        .limit(10);
-    return res.status(200).json({
-      success: true,
-      topSellingCourses,
-    });
-
-
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -118,4 +108,3 @@ exports.categoryPageDetails = async (req, res) => {
     });
   }
 };
-  

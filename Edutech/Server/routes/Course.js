@@ -1,8 +1,6 @@
 // Import the required modules
-const express = require("express")
-const router = express.Router()
-
-// Import the Controllers
+const express = require("express");
+const router = express.Router();
 
 // Course Controllers Import
 const {
@@ -11,75 +9,87 @@ const {
   getCourseDetails,
   updateCourse,
   deleteCourse,
-} = require("../Controllers/Course")
+} = require("../Controllers/Course");
 
 // Categories Controllers Import
 const {
   showAllCategories,
   createCategory,
   categoryPageDetails,
-} = require("../Controllers/Category")
+} = require("../Controllers/Category");
 
 // Sections Controllers Import
 const {
   createSection,
   updateSection,
   deleteSection,
-} = require("../Controllers/Sections")
+} = require("../Controllers/Sections");
 
 // Sub-Sections Controllers Import
 const {
   createSubSection,
   updateSubSection,
   deleteSubSection,
-} = require("../Controllers/SubSection")
+} = require("../Controllers/SubSection");
 
 // Rating Controllers Import
 const {
   createRatingAndReviews,
   getAverageRating,
-  getAllRatings, // ✅ correct import
-} = require("../Controllers/RatingAndReviews")
+  getAllRatings,
+} = require("../Controllers/RatingAndReviews");
+
+// Course Progress Controllers Import
+const {
+  updateCourseProgress,
+  getCourseProgress,
+} = require("../Controllers/CourseProgress");
 
 // Importing Middlewares
-const { auth, instructor, student, admin } = require("../middleware/Auth")
+const { auth, instructor, student, admin } = require("../middleware/Auth");
 
 // ********************************************************************************************************
 //                                      Course routes
 // ********************************************************************************************************
 
-// Courses can Only be Created by Instructors
-router.post("/createCourse", auth, instructor, createCourse)
-router.put("/updateCourse/:courseId", auth, instructor, updateCourse)
-router.delete("/deleteCourse/:courseId", auth, instructor, deleteCourse)
-// Add a Section to a Course
-router.post("/createSection", auth, instructor, createSection)
-// Update a Section
-router.post("/updateSection", auth, instructor, updateSection)
-// Delete a Section
-router.post("/deleteSection", auth, instructor, deleteSection)
-// Edit Sub Section
-router.post("/updateSubSection", auth, instructor, updateSubSection)
-// Delete Sub Section
-router.post("/deleteSubSection", auth, instructor, deleteSubSection)
-// Add a Sub Section to a Section
-router.post("/createSubSection", auth, instructor, createSubSection)
-// Get all Registered Courses
-router.get("/getAllCourses", getAllCourses)
-// Get Details for a Specific Course
-router.post("/getCourseDetails", getCourseDetails)
+// Courses can be created/managed by Instructors & Admins
+router.post("/createCourse", auth, instructor, createCourse);
+router.put("/updateCourse/:courseId", auth, instructor, updateCourse);
+router.delete("/deleteCourse/:courseId", auth, instructor, deleteCourse);
+
+// Add/Update/Delete Section
+router.post("/createSection", auth, instructor, createSection);
+router.post("/updateSection", auth, instructor, updateSection);
+router.post("/deleteSection", auth, instructor, deleteSection);
+
+// Add/Update/Delete Sub Section
+router.post("/createSubSection", auth, instructor, createSubSection);
+router.post("/updateSubSection", auth, instructor, updateSubSection);
+router.post("/deleteSubSection", auth, instructor, deleteSubSection);
+
+// Get all Registered Courses (aliases for GET / and GET /getAllCourses)
+router.get("/", getAllCourses);
+router.get("/getAllCourses", getAllCourses);
+router.post("/getCourseDetails", getCourseDetails);
+router.get("/getCourseDetails/:courseId", getCourseDetails);
+
+// Course Progress routes
+router.post("/updateCourseProgress", auth, student, updateCourseProgress);
+router.post("/getCourseProgress", auth, student, getCourseProgress);
+router.get("/getCourseProgress", auth, student, getCourseProgress);
 
 // ********************************************************************************************************
-//                                      Category routes (Only by Admin)
+//                                      Category routes
 // ********************************************************************************************************
-router.post("/createCategory", auth, admin, createCategory)
-router.get("/showAllCategories", showAllCategories)
-router.post("/getCategoryPageDetails", categoryPageDetails)
+router.post("/createCategory", auth, admin, createCategory);
+router.get("/showAllCategories", showAllCategories);
+router.post("/getCategoryPageDetails", categoryPageDetails);
 
 // ********************************************************************************************************
 //                                      Rating and Review
 // ********************************************************************************************************
-router.post("/createRating", auth, student, createRatingAndReviews)
-router.get("/getAverageRating", getAverageRating)
+router.post("/createRating", auth, student, createRatingAndReviews);
+router.get("/getAverageRating", getAverageRating);
+router.get("/getAllReviews", getAllRatings);
 
-module.exports = router
+module.exports = router;

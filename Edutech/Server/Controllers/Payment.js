@@ -6,6 +6,8 @@ const { courseEnrollmentEmail } = require("../mail/CourseEnrollment");
 const { default: mongoose } = require("mongoose");
 const crypto = require("crypto");
 
+const CourseProgress = require("../Models/CourseProgress");
+
 const enrollStudentInCourse = async ({ courseId, userId }) => {
   const enrolledCourse = await course.findByIdAndUpdate(
     courseId,
@@ -17,9 +19,24 @@ const enrollStudentInCourse = async ({ courseId, userId }) => {
     throw new Error("Course not found for enrollment");
   }
 
+  // Initialize or fetch CourseProgress for student
+  let progress = await CourseProgress.findOne({ courseID: courseId, userId });
+  if (!progress) {
+    progress = await CourseProgress.create({
+      courseID: courseId,
+      userId,
+      completedVideos: [],
+    });
+  }
+
   await user.findByIdAndUpdate(
     userId,
-    { $addToSet: { courses: courseId } },
+    {
+      $addToSet: {
+        courses: courseId,
+        courseProgress: progress._id,
+      },
+    },
     { new: true }
   );
 
@@ -56,8 +73,8 @@ exports.getRazorpayKey = async (_, res) => {
 // capture payment and initiate order
 exports.capturePayment = async (req, res) => {
   try {
-    const { courseId } = req.body;
-    const userId = req.user.id;
+    const courseId = req.body.courseId || (Array.isArray(req.body.courses) ? req.body.courses[0] : undefined);
+    const userId = req.user?.id;
 
     if (!courseId || !userId) {
       return res.status(400).json({

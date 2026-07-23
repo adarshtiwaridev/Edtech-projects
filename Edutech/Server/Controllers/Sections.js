@@ -1,27 +1,24 @@
 const Section = require("../Models/Section");
-const Course = require("../Models/Course");   // Import the Course models
+const Course = require("../Models/Course");
+const SubSection = require("../Models/SubSection");
 
 // ================= CREATE SECTION =================
 exports.createSection = async (req, res) => {
   try {
-    // 1. Data fetch
     const { sectionName, courseId } = req.body;
 
-    // 2. Validation
     if (!sectionName || !courseId) {
       return res.status(400).json({
         success: false,
-        message: "All inputs are required",
+        message: "sectionName and courseId are required",
       });
     }
 
-    // 3. Create section
     const newSection = await Section.create({
       sectionName,
       courseId,
     });
 
-    // 4. Update course by pushing Section _id into courseContent
     const updatedCourse = await Course.findByIdAndUpdate(
       courseId,
       {
@@ -32,19 +29,18 @@ exports.createSection = async (req, res) => {
       .populate({
         path: "courseContent",
         populate: {
-          path: "subsections", // ✅ matches Section schema
+          path: "subsections",
         },
       })
       .exec();
 
-    // 5. Send response
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: "Section created successfully",
       updatedCourse,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error creating section:", error);
     return res.status(500).json({
       success: false,
       message: "Error while creating section",
@@ -53,28 +49,23 @@ exports.createSection = async (req, res) => {
   }
 };
 
-
-
 // ================= UPDATE SECTION =================
 exports.updateSection = async (req, res) => {
   try {
-    // data fetch
     const { sectionName, sectionId } = req.body;
 
-    // validate 
     if (!sectionName || !sectionId) {
-      return res.status(403).json({
+      return res.status(400).json({
         success: false,
-        message: "All inputs are required",
+        message: "sectionName and sectionId are required",
       });
     }
 
-    // find by id and update 
     const updatedSection = await Section.findByIdAndUpdate(
       sectionId,
       { sectionName },
       { new: true }
-    ).populate("subsections"); // optional: if you want updated subsections also
+    ).populate("subsections");
 
     if (!updatedSection) {
       return res.status(404).json({
@@ -83,7 +74,6 @@ exports.updateSection = async (req, res) => {
       });
     }
 
-    // return 
     return res.status(200).json({
       success: true,
       message: "Section updated successfully",
@@ -100,33 +90,63 @@ exports.updateSection = async (req, res) => {
   }
 };
 
- // delete subsection  
- exports.deleteSection =async (req,res)=>{
-     try {
-        //date fetch 
-        const {sectionId} =req.params;
+// ================= DELETE SECTION =================
+exports.deleteSection = async (req, res) => {
+  try {
+    const sectionId = req.body.sectionId || req.params.sectionId;
+    const courseId = req.body.courseId || req.params.courseId;
 
-        //validate 
-        if (!sectionId) {
-           return res.status(403).json({
-            success:false,
-            message:"All inputs are required"
-           } );
-        }
-        //find by id and delete 
-           await Section.findByIdAndDelete(sectionId);
-        //return 
- return res.status(200).json({
+    if (!sectionId) {
+      return res.status(400).json({
+        success: false,
+        message: "sectionId is required",
+      });
+    }
+
+    const section = await Section.findById(sectionId);
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    // Delete associated SubSections
+    if (section.subsections && section.subsections.length > 0) {
+      await SubSection.deleteMany({ _id: { $in: section.subsections } });
+    }
+
+    // Delete Section
+    await Section.findByIdAndDelete(sectionId);
+
+    // Remove Section reference from parent Course
+    const targetCourseId = courseId || section.courseId;
+    let updatedCourse = null;
+    if (targetCourseId) {
+      updatedCourse = await Course.findByIdAndUpdate(
+        targetCourseId,
+        { $pull: { courseContent: sectionId } },
+        { new: true }
+      ).populate({
+        path: "courseContent",
+        populate: {
+          path: "subsections",
+        },
+      });
+    }
+
+    return res.status(200).json({
       success: true,
-      message: "Section delete successfully",
+      message: "Section deleted successfully",
       updatedCourse,
     });
-        
-     } catch (error) {
-        
-        return res.status(500).json({
-            success:false,
-            message:"Something error while deleting"
-        })
-     }
- }
+
+  } catch (error) {
+    console.error("Error deleting section:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error while deleting section",
+      error: error.message,
+    });
+  }
+};

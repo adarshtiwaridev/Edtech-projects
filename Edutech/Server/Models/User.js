@@ -14,10 +14,8 @@ const userSchema = new mongoose.Schema({
     ref: "Profile",
   },
   courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
-  courseprogress: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "CourseProgress",
-  },
+  courseProgress: [{ type: mongoose.Schema.Types.ObjectId, ref: "CourseProgress" }],
+  courseprogress: [{ type: mongoose.Schema.Types.ObjectId, ref: "CourseProgress" }],
   profilePicture: {
     type: String,
     default:

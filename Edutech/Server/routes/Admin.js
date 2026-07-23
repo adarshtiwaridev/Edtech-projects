@@ -8,8 +8,11 @@ const {
   updateUserStatus,
   deleteUserAdmin,
   getAllCoursesAdmin,
-  updateCourseStatus
+  updateCourseStatus,
+  deleteCourseAdmin,
 } = require("../Controllers/Admin");
+
+const { updateCourse } = require("../Controllers/Course");
 
 // All Admin routes require Auth and Admin privileges
 router.use(auth, admin);
@@ -26,5 +29,7 @@ router.delete("/user/:userId", deleteUserAdmin);
 // Course Management
 router.get("/courses", getAllCoursesAdmin);
 router.put("/course/status", updateCourseStatus);
+router.put("/course/:courseId", updateCourse);
+router.delete("/course/:courseId", deleteCourseAdmin);
 
 module.exports = router;

@@ -45,7 +45,7 @@ exports.createCourse = async (req, res) => {
     if (!instructorDetails) {
       return res.status(400).json({ success: false, message: "Instructor not found" });
     }
-    if (instructorDetails.accountType !== "Teacher") {
+    if (instructorDetails.accountType !== "Teacher" && instructorDetails.accountType !== "Instructor" && instructorDetails.accountType !== "Admin") {
       return res.status(403).json({ success: false, message: "Instructor only route" });
     }
 
@@ -106,11 +106,24 @@ exports.createCourse = async (req, res) => {
 
 
 
-// Get all courses
+// Get all courses with optional filters (category, search, level, status)
 exports.getAllCourses = async (req, res) => {
   try {
+    const { category, search, level, status } = { ...req.query, ...req.body };
+    const query = {};
+
+    if (category) query.category = category;
+    if (level) query.level = level;
+    if (status) query.courseStatus = status;
+    if (search) {
+      query.$or = [
+        { courseName: { $regex: search, $options: "i" } },
+        { courseDescription: { $regex: search, $options: "i" } },
+      ];
+    }
+
     const allCourses = await populateCourseQuery(
-      Course.find({}, {
+      Course.find(query, {
         courseName: 1,
         courseDescription: 1,
         ratingAndReviews: 1,
@@ -125,8 +138,8 @@ exports.getAllCourses = async (req, res) => {
         studentsEnrolled: 1,
         courseContent: 1,
         createdAt: 1,
-      })
-    )
+      }).sort({ createdAt: -1 })
+    );
 
     return res.status(200).json({
       success: true,
@@ -143,12 +156,10 @@ exports.getAllCourses = async (req, res) => {
   }
 };
 
-
-
 // Get course details
 exports.getCourseDetails = async (req, res) => {
   try {
-    const { courseId } = req.body;
+    const courseId = req.body.courseId || req.query.courseId || req.params.courseId;
 
     if (!courseId) {
       return res.status(400).json({
@@ -190,8 +201,8 @@ exports.getCourseDetails = async (req, res) => {
 
 exports.updateCourse = async (req, res) => {
   try {
-    const { courseId } = req.params;
-    const { courseName, courseDescription, whatyouwillLearn, price, categories, category, level } = req.body;
+    const courseId = req.params.courseId || req.body.courseId;
+    const { courseName, courseDescription, whatyouwillLearn, price, categories, category, level, courseStatus } = req.body;
     const thumbnailFile = req.files?.thumbnailFile;
     const categoryId = categories || category;
 
@@ -211,7 +222,8 @@ exports.updateCourse = async (req, res) => {
     }
 
     const requesterId = req.user?.id;
-    if (String(existingCourse.instructor) !== String(requesterId)) {
+    const isUserAdmin = req.user?.role === "Admin" || req.user?.accountType === "Admin";
+    if (!isUserAdmin && String(existingCourse.instructor) !== String(requesterId)) {
       return res.status(403).json({
         success: false,
         message: "You can only update your own courses",
@@ -294,7 +306,8 @@ exports.deleteCourse = async (req, res) => {
     }
 
     const requesterId = req.user?.id;
-    if (String(course.instructor) !== String(requesterId)) {
+    const isUserAdmin = req.user?.role === "Admin" || req.user?.accountType === "Admin";
+    if (!isUserAdmin && String(course.instructor) !== String(requesterId)) {
       return res.status(403).json({
         success: false,
         message: "You can only delete your own courses",

@@ -1,32 +1,46 @@
- const SubSection = require("../Models/SubSection");
+const SubSection = require("../Models/SubSection");
 const Section = require("../Models/Section");
 const { uploadOptimizedFile } = require("../utlis/Imageuploader");
 
 // create subsection
 exports.createSubSection = async (req, res) => {
   try {
-    const { sectionId, title, timeDuration, descptions } = req.body;
-    const video = req.files?.video;  // uploaded video
+    const sectionId = req.body.sectionId || req.body.sectionID;
+    const { title } = req.body;
+    const description = req.body.description || req.body.descptions || req.body.descriptions || "";
+    const timeDurationInput = req.body.timeDuration || req.body.duration;
 
-    if (!sectionId || !title || !timeDuration || !descptions || !video) {
+    const video = req.files?.video || req.files?.videoFile || req.files?.videoFiles || req.files?.videoUrl;
+    const existingVideoUrl = req.body.videoUrl || req.body.videourl;
+
+    if (!sectionId || !title || (!video && !existingVideoUrl)) {
       return res.status(400).json({
         success: false,
-        message: "All fields sectionId, title, timeDuration, descriptions, video are required",
+        message: "sectionId, title, and video (or videoUrl) are required",
       });
     }
 
-    // ✅ FIX: pass video.tempFilePath instead of video object
-    const uploadDetails = await uploadOptimizedFile(
-      video.tempFilePath,
-      "Kodemates-lecture",
-      { resource_type: "video" } // tell Cloudinary it's a video
-    );
+    let videoUrl = existingVideoUrl || "";
+    let calculatedDuration = timeDurationInput || "0";
+
+    if (video) {
+      const filePath = video.tempFilePath || video.path;
+      const uploadDetails = await uploadOptimizedFile(
+        filePath,
+        "Kodemates-lecture",
+        { resource_type: "video" }
+      );
+      videoUrl = uploadDetails.secure_url;
+      if (!timeDurationInput && uploadDetails.duration) {
+        calculatedDuration = String(Math.round(uploadDetails.duration));
+      }
+    }
 
     const subSectionDetails = await SubSection.create({
       title,
-      timeDuration,
-      description: descptions,
-      videourl: uploadDetails.secure_url,
+      timeDuration: calculatedDuration,
+      description,
+      videourl: videoUrl,
     });
 
     const updatedSection = await Section.findByIdAndUpdate(
@@ -34,6 +48,13 @@ exports.createSubSection = async (req, res) => {
       { $push: { subsections: subSectionDetails._id } },
       { new: true }
     ).populate("subsections");
+
+    if (!updatedSection) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found for subsection assignment",
+      });
+    }
 
     return res.status(201).json({
       success: true,
@@ -50,24 +71,22 @@ exports.createSubSection = async (req, res) => {
   }
 };
 
-
-
 // update subsection
 exports.updateSubSection = async (req, res) => {
   try {
-    // 1. Extract body and file
-    const { subSectionId, title, timeDuration, descptions } = req.body;
-    const video = req.files?.videoFiles;
+    const subSectionId = req.body.subSectionId || req.body.subSectionID || req.params.subSectionId;
+    const { title } = req.body;
+    const description = req.body.description || req.body.descptions || req.body.descriptions;
+    const timeDuration = req.body.timeDuration || req.body.duration;
+    const video = req.files?.video || req.files?.videoFile || req.files?.videoFiles || req.files?.videoUrl;
 
-    // 2. Validate required fields
-    if (!subSectionId || !title || !timeDuration || !descptions) {
+    if (!subSectionId) {
       return res.status(400).json({
         success: false,
-        message: "All fields (subSectionId, title, timeDuration, description) are required",
+        message: "subSectionId is required",
       });
     }
 
-    // 3. Find SubSection by ID
     const subSectionDetails = await SubSection.findById(subSectionId);
     if (!subSectionDetails) {
       return res.status(404).json({
@@ -76,25 +95,25 @@ exports.updateSubSection = async (req, res) => {
       });
     }
 
-    // 4. Update fields
-    subSectionDetails.title = title;
-    subSectionDetails.timeDuration = timeDuration;
-    subSectionDetails.description = descptions;
+    if (title !== undefined) subSectionDetails.title = title;
+    if (timeDuration !== undefined) subSectionDetails.timeDuration = timeDuration;
+    if (description !== undefined) subSectionDetails.description = description;
 
-    // 5. If new video is provided, upload and update videourl
     if (video) {
+      const filePath = video.tempFilePath || video.path;
       const uploadDetails = await uploadOptimizedFile(
-        video.tempFilePath || video.path, 
+        filePath,
         "Kodemates-lecture",
         { resource_type: "video" }
       );
       subSectionDetails.videourl = uploadDetails.secure_url;
+      if (!timeDuration && uploadDetails.duration) {
+        subSectionDetails.timeDuration = String(Math.round(uploadDetails.duration));
+      }
     }
 
-    // 6. Save updated SubSection
     await subSectionDetails.save();
 
-    // 7. Return response
     return res.status(200).json({
       success: true,
       message: "SubSection updated successfully",
@@ -111,15 +130,12 @@ exports.updateSubSection = async (req, res) => {
   }
 };
 
-
-
-//delete subsection
+// delete subsection
 exports.deleteSubSection = async (req, res) => {
   try {
-    // 1. Extract subSectionId from body
-    const { subSectionId } = req.body;
+    const subSectionId = req.body.subSectionId || req.body.subSectionID || req.params.subSectionId;
+    const sectionId = req.body.sectionId || req.body.sectionID;
 
-    // 2. Validate required field
     if (!subSectionId) {
       return res.status(400).json({
         success: false,
@@ -127,7 +143,6 @@ exports.deleteSubSection = async (req, res) => {
       });
     }
 
-    // 3. Find and delete SubSection by ID
     const subSectionDetails = await SubSection.findByIdAndDelete(subSectionId);
     if (!subSectionDetails) {
       return res.status(404).json({
@@ -136,13 +151,19 @@ exports.deleteSubSection = async (req, res) => {
       });
     }
 
-    // 4. Remove SubSection reference from Section
-    await Section.findOneAndUpdate(
-      { subsections: subSectionId },
-      { $pull: { subsections: subSectionId } }
-    );
+    if (sectionId) {
+      await Section.findByIdAndUpdate(
+        sectionId,
+        { $pull: { subsections: subSectionId } },
+        { new: true }
+      );
+    } else {
+      await Section.findOneAndUpdate(
+        { subsections: subSectionId },
+        { $pull: { subsections: subSectionId } }
+      );
+    }
 
-    // 5. Return response
     return res.status(200).json({
       success: true,
       message: "SubSection deleted successfully",

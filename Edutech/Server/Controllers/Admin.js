@@ -152,7 +152,7 @@ exports.getAllCoursesAdmin = async (req, res) => {
 
     const courses = await Course.find(query)
       .populate("instructor", "firstName lastName email")
-      .populate("category", "name")
+      .populate("category", "categoryName description")
       .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, data: courses });
@@ -163,10 +163,49 @@ exports.getAllCoursesAdmin = async (req, res) => {
 
 exports.updateCourseStatus = async (req, res) => {
   try {
-    const { courseId, status } = req.body; // e.g. "Published", "Draft"
+    const { courseId, status } = req.body; // e.g. "Published", "Draft", "Archived"
+    if (!courseId || !status) {
+      return res.status(400).json({ success: false, message: "courseId and status are required" });
+    }
     const course = await Course.findByIdAndUpdate(courseId, { courseStatus: status }, { new: true });
-    res.status(200).json({ success: true, message: "Course status updated", data: course });
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+    res.status(200).json({ success: true, message: `Course status updated to ${status}`, data: course });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to update course", error: error.message });
+    res.status(500).json({ success: false, message: "Failed to update course status", error: error.message });
+  }
+};
+
+exports.deleteCourseAdmin = async (req, res) => {
+  try {
+    const courseId = req.params.courseId || req.body.courseId;
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: "courseId is required" });
+    }
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+
+    const Section = require("../Models/Section");
+    const SubSection = require("../Models/SubSection");
+    const Category = require("../Models/Categories");
+
+    const sections = await Section.find({ courseId: course._id });
+    const sectionIds = sections.map((s) => s._id);
+    const subSectionIds = sections.flatMap((s) => s.subsections || []);
+
+    if (subSectionIds.length) await SubSection.deleteMany({ _id: { $in: subSectionIds } });
+    if (sectionIds.length) await Section.deleteMany({ _id: { $in: sectionIds } });
+
+    await User.findByIdAndUpdate(course.instructor, { $pull: { courses: course._id } });
+    await Category.findByIdAndUpdate(course.category, { $pull: { courses: course._id } });
+    await Course.findByIdAndDelete(course._id);
+
+    return res.status(200).json({ success: true, message: "Course deleted successfully by admin" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to delete course", error: error.message });
   }
 };

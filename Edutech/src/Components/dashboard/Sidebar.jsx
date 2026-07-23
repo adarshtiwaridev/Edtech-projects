@@ -43,8 +43,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     } else if (role === 'Admin') {
       return [
         ...commonLinks,
+        { name: 'Admin Dashboard', path: '/dashboard/admin', icon: <LayoutDashboard size={20} /> },
+        { name: 'Manage Courses', path: '/dashboard/admin/courses', icon: <BookOpen size={20} /> },
         { name: 'Categories', path: '/dashboard/admin/categories', icon: <Grid size={20} /> },
         { name: 'All Users', path: '/dashboard/admin/users', icon: <Users size={20} /> },
+        { name: 'Instructors', path: '/dashboard/admin/teachers', icon: <Users size={20} /> },
       ];
     }
     return commonLinks;
