@@ -1,13 +1,20 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { visualizer } from "rollup-plugin-visualizer";
+import path from "path";
 
 export default defineConfig({
-  plugins: [
-    react(),
-    visualizer({
-      open: false,
-      gzipSize: true,
-    }),
-  ],
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    outDir: "dist",
+    chunkSizeWarningLimit: 1200,
+  },
+  server: {
+    port: 5173,
+    host: true,
+  },
 });

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_URL } from "../constants/endpoints";
 import toast from "react-hot-toast";
+import { setToken, logout } from "../slices/authSlice";
 
 let store;
 export const injectStore = (_store) => {
@@ -44,7 +45,6 @@ axiosInstance.interceptors.response.use(
           const newToken = refreshResponse.data.token;
           
           if (store) {
-            const { setToken } = await import("../slices/authSlice");
             store.dispatch(setToken(newToken));
           }
           localStorage.setItem("token", newToken);
@@ -55,7 +55,6 @@ axiosInstance.interceptors.response.use(
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           if (store) {
-            const { logout } = await import("../slices/authSlice");
             store.dispatch(logout());
           }
           // Let the UI handle redirect or state change

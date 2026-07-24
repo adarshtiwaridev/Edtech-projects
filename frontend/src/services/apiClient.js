@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const extractTokenFromLocalStorage = () => {
   try {
@@ -29,7 +29,7 @@ apiClient.interceptors.request.use((config) => {
 });
 
 import { store } from "../store/store";
-import { setToken, logout } from "../store/slices/authSlice";
+import { setToken, logout } from "../slices/authSlice";
 
 apiClient.interceptors.response.use(
   (response) => response,
