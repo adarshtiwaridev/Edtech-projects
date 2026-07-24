@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "build": "echo Backend ready",
+    "build": "npm install",
     "seed:admin": "node src/database/seedAdmin.js"
   },
   "dependencies": {
