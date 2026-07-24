@@ -24,7 +24,6 @@
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.6.0",
     "helmet": "^8.3.0",
-    "jp-edtech-monorepo": "file:..",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.23.0",
     "nodemailer": "^7.0.5",

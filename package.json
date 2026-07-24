@@ -1,18 +1,16 @@
 {
-  "name": "jp-edtech-monorepo",
+  "name": "jp-edtech",
   "private": true,
   "version": "1.0.0",
   "workspaces": [
     "backend",
-    "frontend",
-    "admin"
+    "frontend"
   ],
   "scripts": {
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
-    "dev:admin": "npm --prefix admin run dev",
     "build:backend": "npm --prefix backend run build",
     "build:frontend": "npm --prefix frontend run build",
-    "build:admin": "npm --prefix admin run build"
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
   }
 }

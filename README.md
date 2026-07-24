@@ -1,28 +1,26 @@
-# JP EdTech - Scalable Production Monorepo
+# JP EdTech - Production Architecture
 
-Welcome to the **JP EdTech** monorepo repository. This repository has been structured into three independent, production-grade micro-applications.
+Welcome to the **JP EdTech** repository. The platform is refactored into **two independent applications** for modular development, clean separation of concerns, and straightforward deployment.
 
 ```text
 JP-EdTech/
 │
-├── backend/        # Express/Node.js REST API
-├── frontend/       # React/Vite Student & Teacher Web Application
-└── admin/          # React/Vite Dedicated Admin Portal
+├── backend/          # Express / Node.js REST API Service
+└── frontend/         # Unified React / Vite Application (Student + Teacher + Admin)
 ```
 
 ---
 
-## Workspace Structure
+## 🏛️ Architecture Overview
 
-| Directory | Type | Port | Purpose |
-| :--- | :--- | :--- | :--- |
-| [`backend/`](file:///d:/WORKFLOW2025/FULL%20STACK%20DEVELOPEMENT%20supreme%203.0/Edtech-projects/backend) | Node.js Express API | `5000` | DB, Auth, Payments, Courses & Admin REST API |
-| [`frontend/`](file:///d:/WORKFLOW2025/FULL%20STACK%20DEVELOPEMENT%20supreme%203.0/Edtech-projects/frontend) | React / Vite | `5173` | Student learning platform & Teacher portal |
-| [`admin/`](file:///d:/WORKFLOW2025/FULL%20STACK%20DEVELOPEMENT%20supreme%203.0/Edtech-projects/admin) | React / Vite | `5174` | Dedicated Admin Portal & Management Dashboard |
+| Application | Directory | Type | Port | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Backend API** | [`backend/`](file:///d:/WORKFLOW2025/FULL%20STACK%20DEVELOPEMENT%20supreme%203.0/Edtech-projects/backend) | Node.js / Express | `5000` | Database, Authentication, Payments, Courses & Admin REST API |
+| **Frontend App** | [`frontend/`](file:///d:/WORKFLOW2025/FULL%20STACK%20DEVELOPEMENT%20supreme%203.0/Edtech-projects/frontend) | React / Vite | `5173` | Unified Student, Instructor, and Admin Portal |
 
 ---
 
-## Quick Start (Local Development)
+## 🚀 Quick Start (Local Development)
 
 ### 1. Backend Service
 ```bash
@@ -32,7 +30,7 @@ cp .env.example .env
 npm run dev
 ```
 
-### 2. Frontend Application (Student & Teacher)
+### 2. Frontend Application (Student, Teacher & Admin)
 ```bash
 cd frontend
 npm install
@@ -40,32 +38,30 @@ cp .env.example .env
 npm run dev
 ```
 
-### 3. Admin Application
-```bash
-cd admin
-npm install
-cp .env.example .env
-npm run dev
-```
-
 ### Or run from Monorepo Root:
 ```bash
-# Start backend
+# Start Backend only
 npm run dev:backend
 
-# Start frontend
+# Start Frontend only
 npm run dev:frontend
-
-# Start admin
-npm run dev:admin
 ```
 
 ---
 
-## Deployment Strategy
+## 🔐 Key Features & Role-Based Access Control
 
-Each project can be deployed completely independently without affecting the others:
+- **Unified Authentication**: Login via `/login` or `/admin/login`. Tokens and session profiles are stored in Redux & LocalStorage.
+- **Role-Based Guards**: Protected routes enforced using `<ProtectedRoute>` and `<RoleGuard allowedRoles={[...]} />`.
+- **Student Dashboard**: Browse courses, purchase via Razorpay, watch lecture videos, manage profile (`/dashboard/student/*`).
+- **Instructor Dashboard**: Create courses, manage section videos and course content (`/dashboard/teacher/*`).
+- **Admin Dashboard**: Manage platform categories, courses, teachers, users, and quizzes (`/dashboard/admin/*`).
 
-1. **Backend**: Deploy on **Render**, **Railway**, **AWS**, or **DigitalOcean** (`cd backend`, run `npm start`).
-2. **Frontend**: Deploy on **Vercel** or **Netlify** (`cd frontend`, set Root Directory to `frontend`, output `dist`).
-3. **Admin**: Deploy on **Vercel** or **Netlify** (`cd admin`, set Root Directory to `admin`, output `dist`).
+---
+
+## ☁️ Independent Deployment Strategy
+
+Each application is 100% self-contained with no shared internal package dependencies:
+
+1. **Backend Service**: Deploy on **Render**, **Railway**, **AWS Elastic Beanstalk**, or **DigitalOcean** (`cd backend`, run `npm start`).
+2. **Frontend App**: Deploy on **Vercel**, **Netlify**, or **Cloudflare Pages** (`cd frontend`, root `frontend`, output `dist`).

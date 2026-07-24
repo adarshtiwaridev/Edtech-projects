@@ -9,6 +9,7 @@ import Quiz from "./Pages/Quiz";
 import Login from "./Pages/Login";
 import Signup from "./Pages/Signup";
 import AdminQuiz from "./Pages/AdminQuiz";
+import AdminLogin from "./Pages/AdminLogin";
 import VerifyOtp from "./Pages/VerifyOtp";
 import NotFound from "./Pages/NotFound";
 import ForgotPassword from "./Pages/ForgotPassword";
@@ -49,6 +50,8 @@ function App() {
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/admin-quiz" element={<AdminQuiz />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/VerifyOtp" element={<VerifyOtp />} />
