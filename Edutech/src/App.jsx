@@ -54,6 +54,7 @@ function App() {
         <Route path="/VerifyOtp" element={<VerifyOtp />} />
         <Route path="/Forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 
