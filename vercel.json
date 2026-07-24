@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd Edutech && npm install && npm run build",
+  "outputDirectory": "Edutech/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

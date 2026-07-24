@@ -1,0 +1,7 @@
+{
+  "name": "kodemates-root",
+  "private": true,
+  "scripts": {
+    "build": "cd Edutech && npm install && npm run build"
+  }
+}
