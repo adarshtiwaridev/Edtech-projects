@@ -11,6 +11,7 @@
     "dev:frontend": "npm --prefix frontend run dev",
     "build:backend": "npm --prefix backend run build",
     "build:frontend": "npm --prefix frontend run build",
+    "build": "npm --prefix frontend run build",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
   }
 }
