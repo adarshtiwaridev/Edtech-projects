@@ -24,31 +24,38 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// CORS configuration
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5000",
+
+  // Production Frontend
+  "https://kodemates-frontend.vercel.app",
+
   process.env.CLIENT_URL,
   process.env.ADMIN_URL,
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== "production") {
-        callback(null, true);
-      } else {
-        callback(null, true);
+      if (
+        !origin ||
+        process.env.NODE_ENV !== "production" ||
+        allowedOrigins.includes(origin)
+      ) {
+        return callback(null, true);
       }
+
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
 // File upload configuration
 app.use(
   fileUpload({
