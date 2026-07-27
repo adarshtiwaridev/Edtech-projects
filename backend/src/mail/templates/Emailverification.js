@@ -25,10 +25,10 @@ Thank you for using ${SITE_NAME}.
 
 // Initialize Nodemailer transporter (Gmail example)
 const transporter = nodemailer.createTransport({
-  service: "gmail", // or another SMTP service
+  service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,   // your email
-    pass: process.env.EMAIL_PASS,   // your email password or app password
+    user: process.env.EMAIL_USER || process.env.MAIL_USER,
+    pass: process.env.EMAIL_PASS || process.env.MAIL_PASS,
   },
 });
 

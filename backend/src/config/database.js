@@ -1,28 +1,31 @@
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
 const dns = require("dns");
 
-dns.setServers(['8.8.8.8', '1.1.1.1']);
-
-dotenv.config();
-
-const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URL;
+// Set public DNS servers to resolve MongoDB Atlas SRV records on Windows/local networks
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (err) {
+  console.warn("⚠️ Custom DNS setup skipped:", err.message);
+}
 
 const connectDB = async () => {
-  try {
-    if (!MONGO_URI) {
-      console.error("❌ MONGO_URI is missing from environment variables.");
-      process.exit(1);
-    }
+  const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URL;
 
+  if (!MONGO_URI || !MONGO_URI.trim()) {
+    console.error("❌ ERROR: MONGO_URI (or MONGODB_URL) is missing from environment variables.");
+    console.error("💡 TIP: Make sure MONGO_URI is set in your .env file or Render Environment Variables.");
+    process.exit(1);
+  }
+
+  try {
     mongoose.set("strictQuery", true);
 
     const options = {
       serverSelectionTimeoutMS: 5000,
     };
 
-    console.log("⏳ Attempting to connect to MongoDB...");
-    await mongoose.connect(MONGO_URI, options);
+    console.log("⏳ Attempting to connect to MongoDB Atlas...");
+    await mongoose.connect(MONGO_URI.trim(), options);
 
     const { host, name } = mongoose.connection;
     console.log(`✅ MongoDB connected successfully!`);
@@ -33,8 +36,11 @@ const connectDB = async () => {
     console.error("❌ MongoDB connection failed!");
     console.error(`Reason: ${error.message}`);
     
-    if (error.message.includes("ECONNREFUSED")) {
-      console.error("💡 TIP: This is a DNS issue. Verify your IP is whitelisted in Atlas (0.0.0.0/0).");
+    if (error.name === "MongoServerError" && error.code === 18) {
+      console.error("💡 BAD AUTH TIP: Authentication failed. Verify your database username and password.");
+      console.error("   If your password contains special characters like '@', '#', or '$', you MUST URL-encode them (e.g. '@' -> '%40', '#' -> '%23').");
+    } else if (error.message.includes("ECONNREFUSED") || error.message.includes("ENOTFOUND")) {
+      console.error("💡 NETWORK TIP: Verify your connection string and ensure IP 0.0.0.0/0 is whitelisted in MongoDB Atlas Network Access.");
     }
     
     process.exit(1); 

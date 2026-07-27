@@ -4,7 +4,6 @@ const SubSection = require("../models/SubSection");
 const User = require("../models/User");
 const Category = require("../models/Categories");
 const { uploadOptimizedFile } = require("../utils/Imageuploader");
-require("dotenv").config();
 
 const getInstructorDisplayName = (user) =>
   user?.fullName ||

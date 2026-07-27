@@ -3,8 +3,6 @@ const user = require("../models/User");
 const course = require("../models/Course");
 const cloudinary = require("cloudinary").v2;
 
-require("dotenv").config();
-
 // Configure Cloudinary using environment variables
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

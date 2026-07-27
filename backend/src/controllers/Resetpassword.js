@@ -1,7 +1,6 @@
 const User =require("../models/User");
 const sendEmail = require("../utils/Sendemails");
 const mailsender=require("../utils/Sendemails")
-require("dotenv").config();
 const bcrypt =require("bcrypt");
 const crypto = require("crypto");
 

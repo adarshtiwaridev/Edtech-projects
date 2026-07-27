@@ -1,18 +1,22 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-const dotenv = require("dotenv");
-const User = require("./Models/User");
-const Profile = require("./Models/Profile");
-
-dotenv.config();
+const User = require("../models/User");
+const Profile = require("../models/Profile");
 
 const seedAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URL);
-    console.log("Connected to MongoDB");
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URL;
+    if (!mongoUri || !mongoUri.trim()) {
+      console.error("❌ MONGO_URI is missing from environment variables.");
+      process.exit(1);
+    }
 
-    const adminEmail = "admin@tajwin.com";
-    const adminPassword = "Admin@123";
+    await mongoose.connect(mongoUri.trim());
+    console.log("✅ Connected to MongoDB for admin seeding");
+
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@tajwin.com";
+    const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "Admin@123";
 
     const existingAdmin = await User.findOne({ email: adminEmail });
 
@@ -42,10 +46,10 @@ const seedAdmin = async () => {
       profilePicture: `https://api.dicebear.com/5.x/initials/svg?seed=Super%20Admin`,
     });
 
-    console.log("Admin seeded successfully:", adminUser.email);
+    console.log("✅ Admin seeded successfully:", adminUser.email);
     process.exit(0);
   } catch (error) {
-    console.error("Error seeding admin:", error);
+    console.error("❌ Error seeding admin:", error);
     process.exit(1);
   }
 };
