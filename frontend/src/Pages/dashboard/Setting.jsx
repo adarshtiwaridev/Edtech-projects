@@ -10,7 +10,8 @@ import { fetchProfile, setProfileUser } from "../../slices/profileSlice";
 import { useNavigate } from "react-router-dom";
 
 
-import axios from 'axios'; // Assuming you use axios for API calls
+import axios from 'axios';
+import { API_URL } from "../../constants/endpoints";
 // ==========================
 // PROFILE FORM COMPONENT (FIXED)
 // ==========================
@@ -53,7 +54,7 @@ const ProfileForm = () => {
     const formData = new FormData();
     formData.append("displayPicture", imageFile);
 
-    const response = await axios.put(`http://localhost:5000/api/profiles/updateDisplayPicture`,
+    const response = await axios.put(`${API_URL}/profiles/updateDisplayPicture`,
       formData,
       {
         headers: {
@@ -146,7 +147,7 @@ const ResetTokenForm = () => {
     setIsLoading(true);
     setMessage("");
     try {
-      const response = await fetch(`http://localhost:5000/api/users/resetPasswordToken`, {
+      const response = await fetch(`${API_URL}/users/resetPasswordToken`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -205,7 +206,7 @@ const [confirmText, setConfirmText] = useState("");
 const handleDeleteAccount = async () => {
   try {
     const response = await fetch(
-      `http://localhost:5000/api/users/deleteAccount`,
+      `${API_URL}/users/deleteAccount`,
       {
         method: "DELETE",
         headers: {

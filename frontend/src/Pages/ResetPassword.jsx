@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom"; // Assuming you use react-router
+import { API_URL } from "../constants/endpoints";
 
 const ResetPassword = () => {
   const { token } = useParams(); // Grabs the token from the URL
@@ -27,7 +28,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     try {
       // Replace with your actual update password endpoint
-      const response = await fetch(`http://localhost:5000/api/users/resetPassword/${token}`, {
+      const response = await fetch(`${API_URL}/users/resetPassword/${token}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

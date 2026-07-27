@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API_URL } from "../constants/endpoints";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -11,7 +12,7 @@ const ForgotPassword = () => {
     setMessage("");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/resetPasswordToken`, {
+      const response = await fetch(`${API_URL}/users/resetPasswordToken`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

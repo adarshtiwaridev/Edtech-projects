@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, Send, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { API_URL } from '../constants/endpoints';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -81,7 +82,7 @@ const Contact = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/users/contactus", {
+      const response = await fetch(`${API_URL}/users/contactus`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

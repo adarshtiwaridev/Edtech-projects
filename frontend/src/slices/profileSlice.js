@@ -1,12 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { setAuthUser } from "./authSlice";
+import { API_URL } from "../constants/endpoints";
 
 // thunk to fetch the currently logged in user's profile from backend
 export const fetchProfile = createAsyncThunk(
   'profile/fetchProfile',
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/profiles/getUserDetails`, {
+      const res = await fetch(`${API_URL}/profiles/getUserDetails`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
