@@ -28,15 +28,11 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5000",
-
-  // Production Frontend
   "https://kodemates-frontend.vercel.app",
-
   process.env.CLIENT_URL,
   process.env.ADMIN_URL,
   process.env.FRONTEND_URL,
 ].filter(Boolean);
-
 
 app.use(
   cors({
@@ -44,18 +40,20 @@ app.use(
       if (
         !origin ||
         process.env.NODE_ENV !== "production" ||
-        allowedOrigins.includes(origin)
+        allowedOrigins.includes(origin) ||
+        /\.vercel\.app$/.test(origin)
       ) {
         return callback(null, true);
       }
 
-      return callback(new Error("Not allowed by CORS"));
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 // File upload configuration
 app.use(
   fileUpload({
@@ -77,6 +75,14 @@ app.use("/api/admin", adminRoutes);
 // Health check endpoint
 app.get("/", (req, res) => {
   res.json({ status: "success", message: "✅ JP EdTech Backend API is running" });
+});
+
+// 404 Fallback for unhandled API routes
+app.use("*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Cannot ${req.method} ${req.originalUrl} - Route not found`,
+  });
 });
 
 // Global error handler

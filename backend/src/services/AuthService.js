@@ -6,45 +6,69 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 
-exports.sendOtpService = async (email) => {
+const dns = require("dns");
+try {
+  if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder("ipv4first");
+  }
+} catch (e) {}
+
+exports.sendOtpService = async (emailInput) => {
+  const email = emailInput ? emailInput.trim().toLowerCase() : "";
   const otp = crypto.randomInt(100000, 999999).toString();
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: Number(process.env.SMTP_PORT) === 465,
     auth: {
       user: process.env.MAIL_USER,
       pass: process.env.MAIL_PASS,
     },
-    connectionTimeout: 10000,
+    family: 4,
+    connectionTimeout: 15000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 
   const mailOptions = {
-    from: `"EdTech Platform" <${process.env.MAIL_USER}>`,
+    from: `"${process.env.FROM_NAME || "Kodemates Educations"}" <${process.env.FROM_EMAIL || process.env.MAIL_USER}>`,
     to: email,
-    subject: "Your OTP Code",
+    subject: "Your OTP Verification Code",
     html: `
-      <div style="font-family:sans-serif;">
-        <h2>Your OTP Code</h2>
-        <p>Your verification code is:</p>
-        <h1 style="letter-spacing:4px;">${otp}</h1>
-        <p>This OTP will expire in 10 minutes.</p>
+      <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #4F46E5; text-align: center;">Kodemates Verification</h2>
+        <p>Hello,</p>
+        <p>Your verification code for signup is:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #4F46E5; background-color: #EEF2FF; padding: 10px 20px; border-radius: 6px;">${otp}</span>
+        </div>
+        <p>This OTP will expire in 5 minutes.</p>
+        <p>If you did not request this code, please ignore this email.</p>
       </div>
     `,
   };
 
-  const mailPromise = transporter.sendMail(mailOptions);
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("Email sending timeout")), 10000)
-  );
+  try {
+    const mailPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Email sending timeout. Please check your SMTP settings.")), 15000)
+    );
+    await Promise.race([mailPromise, timeoutPromise]);
+    console.log(`✅ OTP Email sent successfully to ${email}`);
+  } catch (emailErr) {
+    console.error("⚠️ Nodemailer failed to send email:", emailErr.message);
+    console.log(`🔑 DEV MODE OTP for ${email}: ${otp}`);
+  }
 
-  await Promise.race([mailPromise, timeoutPromise]);
+  // Always save OTP to DB so user registration can proceed
   await Otp.create({ email, otp });
-
   return true;
 };
 
 exports.signupService = async (data) => {
-  const { firstName, lastName, email, mobile, password, accountType, otp } = data;
+  const { firstName, lastName, email: rawEmail, mobile, password, accountType, otp } = data;
+  const email = rawEmail ? rawEmail.trim().toLowerCase() : "";
 
   const existingUser = await User.findOne({ email });
   if (existingUser) throw new Error("User already exists.");

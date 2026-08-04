@@ -17,7 +17,13 @@ exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const { user, accessToken, refreshToken } = await authService.loginService(email, password);
   
-  const options = { expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), httpOnly: true };
+  const isProduction = process.env.NODE_ENV === "production";
+  const options = {
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+  };
   
   res.cookie("token", refreshToken, options).status(200).json({
     success: true,
@@ -34,7 +40,12 @@ exports.changePassword = asyncHandler(async (req, res) => {
 });
 
 exports.logout = asyncHandler(async (req, res) => {
-  res.clearCookie("token").status(200).json({ success: true, message: "Logged out successfully" });
+  const isProduction = process.env.NODE_ENV === "production";
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+  }).status(200).json({ success: true, message: "Logged out successfully" });
 });
 
 exports.verifyOtp = asyncHandler(async (req, res) => {

@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
   firstName: { type: String, required: true, trim: true },
   lastName: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true },
-  mobile: { type: String, required: true, },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  mobile: { type: String, required: true },
   password: { type: String, required: true },
   accountType: { type: String, enum: ["Admin", "Student", "Teacher"], default: "Student" },
   status: { type: String, enum: ["Pending", "Approved", "Rejected", "Suspended"], default: "Approved" },
@@ -15,7 +15,6 @@ const userSchema = new mongoose.Schema({
   },
   courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
   courseProgress: [{ type: mongoose.Schema.Types.ObjectId, ref: "CourseProgress" }],
-  courseprogress: [{ type: mongoose.Schema.Types.ObjectId, ref: "CourseProgress" }],
   profilePicture: {
     type: String,
     default:

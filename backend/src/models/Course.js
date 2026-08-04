@@ -32,11 +32,6 @@ const CourseSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
-    Thumbnails: {
-      type: String,
-      trim: true,
-      default: "",
-    },
     whatyouwillLearn: {
       type: String,
       trim: true,
