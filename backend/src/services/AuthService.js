@@ -117,7 +117,7 @@ exports.loginService = async (email, password) => {
   const emailClean = email.trim().toLowerCase();
   const user = await User.findOne({ email: emailClean })
     .populate("additionalDetails")
-    .populate("courseprogress")
+    .populate("courseProgress")
     .populate("courses");
 
   if (!user) throw new Error("User not registered.");
