@@ -1,8 +1,13 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const dns = require("dns");
 const User = require("../models/User");
 const Profile = require("../models/Profile");
+
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {}
 
 const seedAdmin = async () => {
   try {
