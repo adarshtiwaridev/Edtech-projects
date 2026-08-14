@@ -51,8 +51,6 @@ const quizQuestionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-quizQuestionSchema.index({ quizId: 1 });
-
 const QuizQuestion =
   mongoose.models.QuizQuestion ||
   mongoose.model("QuizQuestion", quizQuestionSchema);
