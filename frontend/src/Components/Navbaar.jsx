@@ -31,7 +31,7 @@ const Navbaar = () => {
 
   const navItems = [
   
-    { label: "Shop", path: "/shop" },
+   
     { label: "Blogs", path: "/blogs" },
     { label: "About Us", path: "/about" },
     { label: "Contact Us", path: "/contact" },

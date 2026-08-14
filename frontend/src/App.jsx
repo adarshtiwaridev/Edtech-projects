@@ -38,6 +38,13 @@ import StudentMyCoursesPage from "./Pages/dashboard/student/StudentMyCoursesPage
 import StudentLearnCoursePage from "./Pages/dashboard/student/StudentLearnCoursePage";
 import Checkout from "./Pages/dashboard/student/Cheackout";
 
+import AdminQuizCreator from "./Pages/AdminQuizCreator";
+import StudentQuizAttemptScreen from "./Pages/StudentQuizAttemptScreen";
+import QuizResultDashboard from "./Pages/QuizResultDashboard";
+import PublicCertificateVerifyPage from "./Pages/PublicCertificateVerifyPage";
+
+import AdminQuizRecordsPage from "./Pages/dashboard/admin/AdminQuizRecordsPage";
+
 function App() {
   return (
     <Routes>
@@ -50,6 +57,9 @@ function App() {
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/admin-quiz" element={<AdminQuiz />} />
+        <Route path="/admin-quiz-builder" element={<AdminQuizCreator />} />
+        <Route path="/attempt-quiz/:quizId" element={<StudentQuizAttemptScreen />} />
+        <Route path="/quiz-result/:attemptId" element={<QuizResultDashboard />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/login" element={<Login />} />
@@ -58,6 +68,7 @@ function App() {
         <Route path="/Forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/verify-certificate/:verificationId" element={<PublicCertificateVerifyPage />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 
@@ -91,6 +102,14 @@ function App() {
           element={
             <RoleGuard allowedRoles={["Admin"]}>
               <AdminCoursesPage />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="admin/quiz-records"
+          element={
+            <RoleGuard allowedRoles={["Admin", "Teacher", "Instructor"]}>
+              <AdminQuizRecordsPage />
             </RoleGuard>
           }
         />

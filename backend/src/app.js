@@ -5,16 +5,35 @@ const fileUpload = require("express-fileupload");
 const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
 
+const os = require("os");
+
 const cloudconnect = require("./config/cloudinary");
 const { errorHandler } = require("./middleware/errorHandler");
+const { auth } = require("./middleware/Auth");
+const authorizeQuizManagement = require("./middleware/authorizeQuizManagement");
+const { createQuiz, uploadAndExtractPdfQuiz } = require("./controllers/QuizController");
 
 const userRoutes = require("./routes/User");
 const profileRoutes = require("./routes/Profile");
 const courseRoutes = require("./routes/Course");
 const paymentRoutes = require("./routes/Payment");
 const adminRoutes = require("./routes/Admin");
+const studentRoutes = require("./routes/Student");
+const studentEnhancedRoutes = require("./routes/StudentEnhanced");
+const quizRoutes = require("./routes/QuizRoutes");
 
 const app = express();
+
+// Disable ETags to ensure fresh API responses instead of 304 Not Modified
+app.set("etag", false);
+
+// Prevent browser/client caching for REST API endpoints
+app.use((req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  next();
+});
 
 // Security middlewares
 app.use(helmet());
@@ -58,19 +77,36 @@ app.use(
 app.use(
   fileUpload({
     useTempFiles: true,
-    tempFileDir: "/tmp/",
+    tempFileDir: os.tmpdir(),
   })
 );
 
 // Connect Cloudinary
 cloudconnect();
 
-// API Routes
+// Direct Route Aliases for Quiz Creation & Extraction to prevent 404
+app.post("/api/v1/quiz/createQuiz", auth, authorizeQuizManagement, createQuiz);
+app.post("/api/v1/quiz/create", auth, authorizeQuizManagement, createQuiz);
+app.post("/api/quiz/createQuiz", auth, authorizeQuizManagement, createQuiz);
+app.post("/api/quiz/create", auth, authorizeQuizManagement, createQuiz);
+app.post("/v1/quiz/createQuiz", auth, authorizeQuizManagement, createQuiz);
+app.post("/v1/quiz/create", auth, authorizeQuizManagement, createQuiz);
+
+app.post("/api/v1/quiz/pdf-extract", auth, authorizeQuizManagement, uploadAndExtractPdfQuiz);
+app.post("/api/quiz/pdf-extract", auth, authorizeQuizManagement, uploadAndExtractPdfQuiz);
+
+// API Router Modules
 app.use("/api/users", userRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/v1/student", studentRoutes);
+app.use("/api/v1/enhanced", studentEnhancedRoutes);
+app.use("/api/v1/quiz", quizRoutes);
+app.use("/api/quiz", quizRoutes);
+app.use("/v1/quiz", quizRoutes);
+app.use("/quiz", quizRoutes);
 
 // Health check endpoint
 app.get("/", (req, res) => {

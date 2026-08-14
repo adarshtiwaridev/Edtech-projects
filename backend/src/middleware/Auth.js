@@ -40,21 +40,47 @@ exports.student = (req, res, next) => {
   next();
 };
 
-exports.instructor = (req, res, next) => {
-  const role = req.user?.role || req.user?.accountType;
-  if (role !== "Teacher" && role !== "Instructor" && role !== "Admin") {
-    return res.status(403).json({ success: false, message: "Instructor only route" });
+exports.instructor = async (req, res, next) => {
+  try {
+    const role = req.user?.role || req.user?.accountType;
+    if (role !== "Teacher" && role !== "Instructor" && role !== "Admin") {
+      return res.status(403).json({ success: false, message: "Instructor only route" });
+    }
+
+    // Admins always have full permissions
+    if (role === "Admin") {
+      return next();
+    }
+
+    // Fetch live user from DB to prevent token staleness
+    const User = require("../models/User");
+    const dbUser = await User.findById(req.user.id);
+    if (!dbUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const status = dbUser.status || "Approved";
+
+    if (status === "Pending") {
+      // Auto-approve instructor in development / testing mode
+      if (process.env.NODE_ENV !== "production") {
+        dbUser.status = "Approved";
+        await dbUser.save();
+        return next();
+      }
+      return res.status(403).json({ success: false, message: "Your instructor account is pending approval by an admin." });
+    }
+    if (status === "Rejected") {
+      return res.status(403).json({ success: false, message: "Your instructor account was rejected by an admin." });
+    }
+    if (status === "Suspended") {
+      return res.status(403).json({ success: false, message: "Your instructor account is suspended." });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Error verifying instructor authorization", error: error.message });
   }
-  if (req.user.status === "Pending") {
-    return res.status(403).json({ success: false, message: "Your instructor account is pending approval by an admin." });
-  }
-  if (req.user.status === "Rejected") {
-    return res.status(403).json({ success: false, message: "Your instructor account was rejected." });
-  }
-  if (req.user.status === "Suspended") {
-    return res.status(403).json({ success: false, message: "Your instructor account is suspended." });
-  }
-  next();
 };
 
 exports.admin = (req, res, next) => {

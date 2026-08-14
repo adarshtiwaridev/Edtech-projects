@@ -1,12 +1,21 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://kodemates-2.onrender.com/api";
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+    if (!envUrl || envUrl.includes("onrender.com")) {
+      return "http://localhost:5000/api";
+    }
+  }
+  return envUrl || "https://kodemates-2.onrender.com/api";
+};
+
+const API_BASE_URL = getBaseUrl();
 
 const extractTokenFromLocalStorage = () => {
   try {
     const token = localStorage.getItem("token");
-    // If it was stored with JSON.stringify, parse it, otherwise just return
-    return token ? token.replace(/^"(.*)"$/, '$1') : null;
+    return token ? token.replace(/^"(.*)"$/, "$1") : null;
   } catch {
     return null;
   }
@@ -28,44 +37,54 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-import { store } from "../store/store";
-import { setToken, logout } from "../slices/authSlice";
-
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
-    // If 401 and we haven't retried yet
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshResponse = await axios.post(`${API_BASE_URL}/users/refresh`, {}, { withCredentials: true });
         const newToken = refreshResponse.data.token;
-        
-        // Update Redux state and local storage
+
+        const { store } = await import("../store/store");
+        const { setToken } = await import("../slices/authSlice");
+
         store.dispatch(setToken(newToken));
         localStorage.setItem("token", newToken);
-        
-        // Update header for original request and retry
+
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // If refresh token fails, logout user
-        store.dispatch(logout());
+        try {
+          const { store } = await import("../store/store");
+          const { logout } = await import("../slices/authSlice");
+          store.dispatch(logout());
+        } catch (e) {}
+        localStorage.removeItem("token");
         return Promise.reject(new Error("Session expired. Please log in again."));
       }
     }
-    
+
     const serverMessage = error?.response?.data?.message;
     const fallbackMessage = error?.message || "Request failed";
     return Promise.reject(new Error(serverMessage || fallbackMessage));
   }
 );
 
+// Helper to sanitize paths and prevent double '/api/api' concatenation
+const sanitizePath = (path) => {
+  if (typeof path === "string" && path.startsWith("/api/")) {
+    return path.replace(/^\/api/, "");
+  }
+  return path;
+};
+
 export const postWithFallback = async (paths, data, config = {}) => {
   let lastError;
-  for (const path of paths) {
+  for (const p of paths) {
+    const path = sanitizePath(p);
     try {
       const response = await apiClient.post(path, data, config);
       return response.data;
@@ -78,7 +97,8 @@ export const postWithFallback = async (paths, data, config = {}) => {
 
 export const getWithFallback = async (paths, config = {}) => {
   let lastError;
-  for (const path of paths) {
+  for (const p of paths) {
+    const path = sanitizePath(p);
     try {
       const response = await apiClient.get(path, config);
       return response.data;
@@ -91,7 +111,8 @@ export const getWithFallback = async (paths, config = {}) => {
 
 export const putWithFallback = async (paths, data, config = {}) => {
   let lastError;
-  for (const path of paths) {
+  for (const p of paths) {
+    const path = sanitizePath(p);
     try {
       const response = await apiClient.put(path, data, config);
       return response.data;
@@ -104,7 +125,8 @@ export const putWithFallback = async (paths, data, config = {}) => {
 
 export const deleteWithFallback = async (paths, config = {}) => {
   let lastError;
-  for (const path of paths) {
+  for (const p of paths) {
+    const path = sanitizePath(p);
     try {
       const response = await apiClient.delete(path, config);
       return response.data;

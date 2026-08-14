@@ -1,4 +1,14 @@
-export const API_URL = import.meta.env.VITE_API_URL || "https://kodemates-2.onrender.com/api";
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+    if (!envUrl || envUrl.includes("onrender.com")) {
+      return "http://localhost:5000/api";
+    }
+  }
+  return envUrl || "https://kodemates-2.onrender.com/api";
+};
+
+export const API_URL = getBaseUrl();
 
 export const ENDPOINTS = {
   AUTH: {

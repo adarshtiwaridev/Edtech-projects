@@ -40,6 +40,18 @@ const AdminQuickActions = ({ isDark }) => {
       onClick: () => navigate("/dashboard/teacher/courses/create"),
     },
     {
+      icon: FileText,
+      label: "Create AI Quiz",
+      colorClass: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+      onClick: () => navigate("/admin-quiz-builder"),
+    },
+    {
+      icon: BarChart2,
+      label: "Quiz Records",
+      colorClass: "bg-purple-500/10 text-purple-400 border border-purple-500/20",
+      onClick: () => navigate("/dashboard/admin/quiz-records"),
+    },
+    {
       icon: FolderPlus,
       label: "Add Category",
       colorClass: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
@@ -62,12 +74,6 @@ const AdminQuickActions = ({ isDark }) => {
       label: "Broadcast Alert",
       colorClass: "bg-sky-500/10 text-sky-400 border border-sky-500/20",
       onClick: handleBroadcast,
-    },
-    {
-      icon: Megaphone,
-      label: "Announcement",
-      colorClass: "bg-rose-500/10 text-rose-400 border border-rose-500/20",
-      onClick: () => toast.info("New Announcement Modal Opened"),
     },
     {
       icon: Download,

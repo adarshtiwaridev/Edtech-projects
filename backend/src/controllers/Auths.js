@@ -16,6 +16,22 @@ exports.signup = asyncHandler(async (req, res) => {
 exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const { user, accessToken, refreshToken } = await authService.loginService(email, password);
+
+  // Record session details for analytics & security tracking
+  const userAgent = req.headers["user-agent"] || "";
+  const ip = req.ip || req.connection.remoteAddress || "127.0.0.1";
+  const StudentService = require("../services/StudentService");
+  
+  const reqDetails = {
+    ip,
+    userAgent,
+    browser: userAgent.includes("Chrome") ? "Chrome" : userAgent.includes("Firefox") ? "Firefox" : userAgent.includes("Safari") ? "Safari" : "Web Browser",
+    os: userAgent.includes("Windows") ? "Windows" : userAgent.includes("Mac") ? "macOS" : userAgent.includes("Linux") ? "Linux" : "Android/iOS",
+    deviceType: /mobile/i.test(userAgent) ? "Mobile" : "Desktop",
+    location: "India (Local)",
+  };
+
+  await StudentService.recordLoginSession(user._id, reqDetails, refreshToken);
   
   const isProduction = process.env.NODE_ENV === "production";
   const options = {

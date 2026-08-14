@@ -11,8 +11,8 @@ const {
 const { auth, student } = require("../middleware/Auth");
 
 router.get("/getRazorpayKey", auth, getRazorpayKey);
-router.post("/capturePayment", auth, student, capturePayment);
-router.post("/verifyPayment", auth, student, verifyPayment);
+router.post("/capturePayment", auth, capturePayment);
+router.post("/verifyPayment", auth, verifyPayment);
 router.post("/verifySignature", verifySignature);
 
 module.exports = router;

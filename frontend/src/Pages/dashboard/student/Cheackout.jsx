@@ -45,6 +45,22 @@ const Checkout = () => {
         courses: courseIds,
       });
 
+      if (orderResponse?.alreadyEnrolled) {
+        toast.info("You are already enrolled in this course! Heading to your learning dashboard.");
+        dispatch(resetCart());
+        navigate("/dashboard/student/my-courses");
+        setLoading(false);
+        return;
+      }
+
+      if (orderResponse?.simulated || orderResponse?.freeEnrollment) {
+        toast.success(orderResponse.message || "Enrollment completed successfully!");
+        dispatch(resetCart());
+        navigate("/dashboard/student/my-courses");
+        setLoading(false);
+        return;
+      }
+
       if (!orderResponse?.success || !orderResponse?.orderId) {
         toast.error(orderResponse?.message || "Failed to initialize order");
         setLoading(false);

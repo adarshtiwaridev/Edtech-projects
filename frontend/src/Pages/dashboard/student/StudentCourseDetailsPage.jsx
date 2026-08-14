@@ -67,8 +67,23 @@ const StudentCourseDetailsPage = () => {
       }
 
       const order = await createOrderApi(id);
+
+      if (order?.alreadyEnrolled) {
+        toast.info("You are already enrolled in this course!");
+        dispatch(fetchEnrolledCourses());
+        navigate(`/dashboard/student/learn/${id}`);
+        return;
+      }
+
+      if (order?.simulated || order?.freeEnrollment) {
+        toast.success(order.message || "Course unlocked successfully!");
+        dispatch(fetchEnrolledCourses());
+        navigate(`/dashboard/student/learn/${id}`);
+        return;
+      }
+
       if (!order?.orderId || !order?.amount) {
-        toast.error("Unable to create payment order");
+        toast.error(order?.message || "Unable to create payment order");
         return;
       }
 

@@ -1,61 +1,53 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { setAuthUser } from "./authSlice";
-import { API_URL } from "../constants/endpoints";
+import apiClient from "../services/apiClient";
 
 // thunk to fetch the currently logged in user's profile from backend
 export const fetchProfile = createAsyncThunk(
-  'profile/fetchProfile',
+  "profile/fetchProfile",
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_URL}/profiles/getUserDetails`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        return rejectWithValue(errorData.message || 'Failed to load profile');
+      const res = await apiClient.get("/profiles/getUserDetails");
+      const profileUser = res.data?.data;
+      if (profileUser) {
+        dispatch(setAuthUser(profileUser)); // sync auth slice too
       }
-      const data = await res.json();
-      const profileUser = data.data;
-      dispatch(setAuthUser(profileUser)); // sync auth slice too
-      return profileUser; // backend wraps profile in data
+      return profileUser;
     } catch (err) {
-      return rejectWithValue(err.message || 'Network error');
+      return rejectWithValue(err.message || "Failed to load profile");
     }
   }
 );
 
-const intialState = {
-    user: null,
-    loading: false,
-    error: null,
+const initialState = {
+  user: null,
+  loading: false,
+  error: null,
 };
 
 const profileSlice = createSlice({
-    name: 'profile',
-    initialState: intialState,
-    reducers: {
-     setProfileUser: (state, action) => {
-  state.user = action.payload;
-},
+  name: "profile",
+  initialState,
+  reducers: {
+    setProfileUser: (state, action) => {
+      state.user = action.payload;
     },
-    extraReducers: (builder) => {
-      builder
-        .addCase(fetchProfile.pending, (state) => {
-          state.loading = true;
-          state.error = null;
-        })
-        .addCase(fetchProfile.fulfilled, (state, action) => {
-          state.loading = false;
-          state.user = action.payload;
-        })
-        .addCase(fetchProfile.rejected, (state, action) => {
-          state.loading = false;
-          state.error = action.payload || action.error.message;
-        });
-    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(fetchProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      });
+  },
 });
 
 export const { setProfileUser } = profileSlice.actions;
