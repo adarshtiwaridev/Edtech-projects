@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Play, CheckCircle, Volume2, AlertTriangle, RefreshCw } from "lucide-react";
-import { getCourseProgressApi, updateCourseProgressApi } from "../../services/courseService";
+import { Play, CheckCircle, Volume2, AlertTriangle, RefreshCw, Award } from "lucide-react";
+import { getCourseProgressApi, updateCourseProgressApi, generateCertificateApi } from "../../services/courseService";
+import { useNavigate } from "react-router-dom";
 
 const LecturePlayer = ({ course }) => {
   const courseId = course?._id || course?.id;
@@ -22,12 +23,30 @@ const LecturePlayer = ({ course }) => {
     });
   }, [course]);
 
+  const navigate = useNavigate();
   const [activeLecture, setActiveLecture] = useState(lectures[0] || null);
   const [completedVideos, setCompletedVideos] = useState([]);
   const [progressStats, setProgressStats] = useState({ completedCount: 0, totalSubsections: lectures.length, progressPercentage: 0 });
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [videoError, setVideoError] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [claimingCert, setClaimingCert] = useState(false);
+
+  const handleClaimCertificate = async () => {
+    if (!courseId) return;
+    try {
+      setClaimingCert(true);
+      const res = await generateCertificateApi(courseId);
+      if (res?.data?.verificationId) {
+        toast.success("Certificate issued successfully! 🎉");
+        navigate(`/verify-certificate/${res.data.verificationId}`);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Failed to generate certificate.");
+    } finally {
+      setClaimingCert(false);
+    }
+  };
 
   useEffect(() => {
     if (lectures.length && !activeLecture) {
@@ -116,11 +135,22 @@ const LecturePlayer = ({ course }) => {
             {progressStats.completedCount} of {progressStats.totalSubsections || lectures.length} lectures completed ({progressStats.progressPercentage}%)
           </p>
         </div>
-        <div className="w-full md:w-72 bg-slate-100 dark:bg-slate-800 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
-          <div
-            className="bg-gradient-to-r from-blue-600 to-emerald-500 h-full rounded-full transition-all duration-500"
-            style={{ width: `${progressStats.progressPercentage}%` }}
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <div className="w-full md:w-64 bg-slate-100 dark:bg-slate-800 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
+            <div
+              className="bg-gradient-to-r from-blue-600 to-emerald-500 h-full rounded-full transition-all duration-500"
+              style={{ width: `${progressStats.progressPercentage}%` }}
+            />
+          </div>
+          {(progressStats.progressPercentage >= 100 || progressStats.completedCount >= (progressStats.totalSubsections || lectures.length)) && (
+            <button
+              disabled={claimingCert}
+              onClick={handleClaimCertificate}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <Award size={16} /> {claimingCert ? "Generating..." : "Claim Official Certificate"}
+            </button>
+          )}
         </div>
       </div>
 

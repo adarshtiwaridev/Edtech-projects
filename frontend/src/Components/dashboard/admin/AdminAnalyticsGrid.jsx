@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { 
   Users, UserCheck, Activity, DollarSign, BookOpen, Layers, 
-  TrendingUp, Award, Star, Clock, CheckCircle2, AlertCircle 
+  TrendingUp, Award, Star, Clock, CheckCircle2 
 } from "lucide-react";
 
 const StatCard = ({ icon: Icon, title, value, change, isPositive, color, isDark, index }) => {
@@ -33,7 +33,7 @@ const StatCard = ({ icon: Icon, title, value, change, isPositive, color, isDark,
 
       <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</p>
       <h3 className="text-2xl font-extrabold tracking-tight mt-1 text-slate-900 dark:text-white">
-        {value !== undefined ? value : "..."}
+        {value !== undefined ? value : "0"}
       </h3>
     </motion.div>
   );
@@ -44,47 +44,47 @@ const AdminAnalyticsGrid = ({ stats, isDark }) => {
     {
       icon: Users,
       title: "Total Users",
-      value: stats?.totalUsers || 1420,
-      change: "+12.4%",
+      value: stats?.totalUsers !== undefined ? stats.totalUsers : 0,
+      change: stats?.rangeNewUsers ? `+${stats.rangeNewUsers} new` : "Live",
       isPositive: true,
       color: "bg-blue-500/10 text-blue-500 border border-blue-500/20",
     },
     {
       icon: UserCheck,
       title: "Active Students",
-      value: stats?.totalStudents || 1180,
-      change: "+8.2%",
+      value: stats?.totalStudents !== undefined ? stats.totalStudents : 0,
+      change: "Enrolled",
       isPositive: true,
       color: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
     },
     {
       icon: Activity,
       title: "Instructors",
-      value: stats?.totalTeachers || 48,
-      change: "+4.1%",
+      value: stats?.totalTeachers !== undefined ? stats.totalTeachers : 0,
+      change: "Approved",
       isPositive: true,
       color: "bg-purple-500/10 text-purple-500 border border-purple-500/20",
     },
     {
       icon: DollarSign,
       title: "Total Revenue",
-      value: `₹${(stats?.totalRevenue || 452000).toLocaleString()}`,
-      change: "+18.6%",
+      value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`,
+      change: "Gross",
       isPositive: true,
       color: "bg-amber-500/10 text-amber-500 border border-amber-500/20",
     },
     {
       icon: BookOpen,
       title: "Total Courses",
-      value: stats?.totalCourses || 64,
-      change: "+5 New",
+      value: stats?.totalCourses !== undefined ? stats.totalCourses : 0,
+      change: `${stats?.publishedCourses || 0} Pub.`,
       isPositive: true,
       color: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20",
     },
     {
       icon: Layers,
       title: "Categories",
-      value: stats?.totalCategories || 12,
+      value: stats?.totalCategories !== undefined ? stats.totalCategories : 0,
       change: "Active",
       isPositive: true,
       color: "bg-sky-500/10 text-sky-500 border border-sky-500/20",
@@ -92,48 +92,48 @@ const AdminAnalyticsGrid = ({ stats, isDark }) => {
     {
       icon: TrendingUp,
       title: "Monthly Revenue",
-      value: `₹${(stats?.monthlyRevenue || 84500).toLocaleString()}`,
-      change: "+14.3%",
+      value: `₹${(stats?.monthlyRevenue || 0).toLocaleString()}`,
+      change: "30-Day",
       isPositive: true,
       color: "bg-teal-500/10 text-teal-500 border border-teal-500/20",
     },
     {
       icon: CheckCircle2,
       title: "Today's Enrollments",
-      value: stats?.todayEnrollments || 34,
-      change: "+18 Today",
+      value: stats?.todayEnrollments !== undefined ? stats.todayEnrollments : 0,
+      change: "Today",
       isPositive: true,
       color: "bg-pink-500/10 text-pink-500 border border-pink-500/20",
     },
     {
       icon: Award,
       title: "Certificates Issued",
-      value: stats?.certificatesIssued || 382,
-      change: "+24 This Wk",
+      value: stats?.certificatesIssued !== undefined ? stats.certificatesIssued : 0,
+      change: "Verified",
       isPositive: true,
       color: "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20",
     },
     {
       icon: Activity,
       title: "Completion Rate",
-      value: `${stats?.completionRate || 88.5}%`,
-      change: "+2.1%",
+      value: `${stats?.completionRate !== undefined ? stats.completionRate : 0}%`,
+      change: "Average",
       isPositive: true,
       color: "bg-violet-500/10 text-violet-500 border border-violet-500/20",
     },
     {
       icon: Star,
       title: "Average Rating",
-      value: `${stats?.avgRating || 4.8} / 5.0`,
-      change: "98% Positive",
+      value: `${stats?.avgRating !== undefined ? stats.avgRating : 5.0} / 5.0`,
+      change: "Positive",
       isPositive: true,
       color: "bg-orange-500/10 text-orange-500 border border-orange-500/20",
     },
     {
       icon: Clock,
       title: "Pending Approvals",
-      value: stats?.pendingTeachers || 3,
-      change: "Requires Action",
+      value: stats?.pendingTeachers !== undefined ? stats.pendingTeachers : 0,
+      change: "Pending",
       isPositive: false,
       color: "bg-rose-500/10 text-rose-500 border border-rose-500/20",
     },

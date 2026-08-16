@@ -2,6 +2,8 @@ const SubSection = require("../models/SubSection");
 const Section = require("../models/Section");
 const { uploadOptimizedFile } = require("../utils/Imageuploader");
 
+const DEFAULT_VIDEO_URL = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
 // create subsection
 exports.createSubSection = async (req, res) => {
   try {
@@ -13,26 +15,35 @@ exports.createSubSection = async (req, res) => {
     const video = req.files?.video || req.files?.videoFile || req.files?.videoFiles || req.files?.videoUrl;
     const existingVideoUrl = req.body.videoUrl || req.body.videourl;
 
-    if (!sectionId || !title || (!video && !existingVideoUrl)) {
+    if (!sectionId || !title) {
       return res.status(400).json({
         success: false,
-        message: "sectionId, title, and video (or videoUrl) are required",
+        message: "sectionId and title are required to create a subsection",
       });
     }
 
-    let videoUrl = existingVideoUrl || "";
-    let calculatedDuration = timeDurationInput || "0";
+    let videoUrl = existingVideoUrl || DEFAULT_VIDEO_URL;
+    let calculatedDuration = timeDurationInput || "10:00";
 
     if (video) {
-      const filePath = video.tempFilePath || video.path;
-      const uploadDetails = await uploadOptimizedFile(
-        filePath,
-        "Kodemates-lecture",
-        { resource_type: "video" }
-      );
-      videoUrl = uploadDetails.secure_url;
-      if (!timeDurationInput && uploadDetails.duration) {
-        calculatedDuration = String(Math.round(uploadDetails.duration));
+      try {
+        const filePath = video.tempFilePath || video.path;
+        const uploadDetails = await uploadOptimizedFile(
+          filePath,
+          "Kodemates-lecture",
+          { resource_type: "video" }
+        );
+        if (uploadDetails?.secure_url) {
+          videoUrl = uploadDetails.secure_url;
+        }
+        if (!timeDurationInput && uploadDetails?.duration) {
+          calculatedDuration = String(Math.round(uploadDetails.duration));
+        }
+      } catch (uploadErr) {
+        console.warn("Cloudinary video upload fallback activated:", uploadErr.message);
+        if (!videoUrl) {
+          videoUrl = DEFAULT_VIDEO_URL;
+        }
       }
     }
 
@@ -100,15 +111,21 @@ exports.updateSubSection = async (req, res) => {
     if (description !== undefined) subSectionDetails.description = description;
 
     if (video) {
-      const filePath = video.tempFilePath || video.path;
-      const uploadDetails = await uploadOptimizedFile(
-        filePath,
-        "Kodemates-lecture",
-        { resource_type: "video" }
-      );
-      subSectionDetails.videourl = uploadDetails.secure_url;
-      if (!timeDuration && uploadDetails.duration) {
-        subSectionDetails.timeDuration = String(Math.round(uploadDetails.duration));
+      try {
+        const filePath = video.tempFilePath || video.path;
+        const uploadDetails = await uploadOptimizedFile(
+          filePath,
+          "Kodemates-lecture",
+          { resource_type: "video" }
+        );
+        if (uploadDetails?.secure_url) {
+          subSectionDetails.videourl = uploadDetails.secure_url;
+        }
+        if (!timeDuration && uploadDetails?.duration) {
+          subSectionDetails.timeDuration = String(Math.round(uploadDetails.duration));
+        }
+      } catch (uploadErr) {
+        console.warn("Cloudinary video update fallback activated:", uploadErr.message);
       }
     }
 

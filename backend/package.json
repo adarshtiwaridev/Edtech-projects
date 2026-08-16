@@ -10,7 +10,8 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "build": "npm install",
-    "seed:admin": "node src/database/seedAdmin.js"
+    "seed:admin": "node src/database/seedAdmin.js",
+    "test": "jest --detectOpenHandles --forceExit"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -34,9 +35,12 @@
     "pdfkit": "^0.19.1",
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
+    "socket.io": "^4.8.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.2.2"
   }
 }

@@ -5,6 +5,7 @@ const QuizAttempt = require("../models/QuizAttempt");
 const UploadedPdf = require("../models/UploadedPdf");
 const { extractQuizFromPdfBuffer } = require("../services/PdfQuizExtractorService");
 const { evaluateQuizSubmission } = require("../services/QuizEvaluationService");
+const StudentService = require("../services/StudentService");
 
 // 1. Upload PDF & Extract Structured Quiz Questions
 exports.uploadAndExtractPdfQuiz = asyncHandler(async (req, res) => {
@@ -258,6 +259,16 @@ exports.submitQuizAttempt = asyncHandler(async (req, res) => {
   attempt.aiPerformanceReport = evalResult.aiPerformanceReport;
 
   await attempt.save();
+
+  try {
+    await StudentService.logActivity(attempt.studentId, {
+      minutes: quiz.durationMinutes || 20,
+      lecturesCount: 0,
+      quizzesCount: 1,
+    });
+  } catch (logErr) {
+    console.error("Failed to log activity for quiz submission:", logErr.message);
+  }
 
   res.status(200).json({
     success: true,

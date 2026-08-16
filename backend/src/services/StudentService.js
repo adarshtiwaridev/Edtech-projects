@@ -6,30 +6,31 @@ const StudentSession = require("../models/StudentSession");
 const StudentResume = require("../models/StudentResume");
 const Notification = require("../models/Notification");
 const StudentPreferences = require("../models/StudentPreferences");
+const Certificate = require("../models/Certificate");
+const QuizAttempt = require("../models/QuizAttempt");
+const { emitToUser } = require("../sockets/socket");
 
 class StudentService {
-  // Ensure default records exist for student
+  // Ensure default records exist for student without fake random stats
   static async ensureStudentRecords(userId) {
     let streak = await StudentStreak.findOne({ userId });
     if (!streak) {
       const today = new Date().toISOString().split("T")[0];
       streak = await StudentStreak.create({
         userId,
-        currentStreak: 5,
-        longestStreak: 12,
-        missedDays: 1,
-        totalStudyMinutes: 450,
-        totalXp: 1850,
-        level: 4,
-        coins: 120,
-        badges: ["Early Adopter", "7-Day Streak Master", "DSA Novice", "Quick Learner"],
-        achievements: ["Completed First Module", "Scored 100% on Quiz", "Logged 5 Hours"],
+        currentStreak: 0,
+        longestStreak: 0,
+        missedDays: 0,
+        totalStudyMinutes: 0,
+        totalXp: 0,
+        level: 1,
+        coins: 0,
+        badges: ["New Learner"],
+        achievements: [],
         lastActiveDate: today,
-        dailyTargetMinutes: 45,
+        dailyTargetMinutes: 30,
         weeklyGoalLectures: 10,
-        activityLogs: [
-          { date: today, minutes: 45, lecturesCompleted: 2, quizzesTaken: 1 },
-        ],
+        activityLogs: [],
       });
     }
 
@@ -37,7 +38,7 @@ class StudentService {
     if (!resume) {
       resume = await StudentResume.create({
         userId,
-        skills: ["JavaScript", "React.js", "Node.js", "MongoDB", "Tailwind CSS", "Data Structures"],
+        skills: ["JavaScript", "HTML/CSS"],
       });
     }
 
@@ -52,27 +53,11 @@ class StudentService {
       await Notification.insertMany([
         {
           userId,
-          type: "Placement",
-          title: "SDE Internship Drive 2026 Active",
-          message: "Top tech companies are reviewing student profiles. Keep your GitHub & project status updated!",
+          type: "System",
+          title: "Welcome to Kodemates Learning Platform!",
+          message: "Explore published courses, complete interactive quizzes, and earn verified certificates.",
           priority: "High",
-          link: "/dashboard",
-        },
-        {
-          userId,
-          type: "Streak",
-          title: "🔥 5-Day Learning Streak Active!",
-          message: "Keep up the great pace. Study 15 minutes today to maintain your current streak.",
-          priority: "Medium",
-          link: "/dashboard",
-        },
-        {
-          userId,
-          type: "Quiz",
-          title: "Upcoming Full-Stack Assessment",
-          message: "React & Node.js mastery quiz scheduled for Friday. Practice with previous coding challenges.",
-          priority: "Medium",
-          link: "/quiz",
+          link: "/dashboard/student/browse",
         },
       ]);
     }
@@ -83,7 +68,6 @@ class StudentService {
   // Record login session automatically
   static async recordLoginSession(userId, reqDetails, token) {
     try {
-      // Mark prior current sessions as non-current
       await StudentSession.updateMany({ userId, isCurrent: true }, { isCurrent: false });
 
       const newSession = await StudentSession.create({
@@ -105,7 +89,7 @@ class StudentService {
     }
   }
 
-  // Dashboard Overview
+  // Dashboard Overview with Real Database Analytics
   static async getOverview(userId) {
     await this.ensureStudentRecords(userId);
 
@@ -119,38 +103,82 @@ class StudentService {
 
     const totalEnrolled = user.courses ? user.courses.length : 0;
     
-    // Calculate progress stats
+    // Real Course Progress Calculations
     let completedCoursesCount = 0;
     let inProgressCount = 0;
-    let totalCompletedLectures = 0;
 
-    if (user.courseProgress && user.courseProgress.length > 0) {
-      for (const cp of user.courseProgress) {
-        const completedCount = cp.completedVideos ? cp.completedVideos.length : 0;
-        totalCompletedLectures += completedCount;
-        if (completedCount > 5) {
-          completedCoursesCount++;
-        } else {
-          inProgressCount++;
-        }
+    const allProgressRecords = await CourseProgress.find({ userId });
+    
+    for (const cp of allProgressRecords) {
+      const course = await Course.findById(cp.courseID).populate({
+        path: "courseContent",
+        populate: { path: "subsections" },
+      });
+
+      let totalSubsections = 0;
+      if (course?.courseContent) {
+        course.courseContent.forEach((sec) => {
+          totalSubsections += sec.subsections?.length || 0;
+        });
       }
-    } else {
-      inProgressCount = totalEnrolled;
+
+      const completedCount = cp.completedVideos ? cp.completedVideos.length : 0;
+
+      if (totalSubsections > 0 && completedCount >= totalSubsections) {
+        completedCoursesCount++;
+      } else {
+        inProgressCount++;
+      }
     }
 
-    const certificatesEarned = completedCoursesCount;
+    const certificatesEarned = await Certificate.countDocuments({ userId });
     const hoursStudied = (streak.totalStudyMinutes / 60).toFixed(1);
 
-    // Build weekly activity breakdown from activity logs or defaults
+    // Calculate real average quiz score
+    const completedQuizAttempts = await QuizAttempt.find({
+      studentId: userId,
+      status: { $in: ["completed", "auto_submitted"] },
+    });
+
+    let avgQuizScore = 0;
+    if (completedQuizAttempts.length > 0) {
+      const totalPct = completedQuizAttempts.reduce((sum, a) => sum + (a.percentage || 0), 0);
+      avgQuizScore = Math.round(totalPct / completedQuizAttempts.length);
+    }
+
+    // Build real weekly activity breakdown from activity logs
+    const now = new Date();
+    const currentDayOfWeek = now.getDay();
+    const sundayDate = new Date(now);
+    sundayDate.setDate(now.getDate() - currentDayOfWeek);
+
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const weeklyActivity = daysOfWeek.map((day, idx) => {
-      const log = streak.activityLogs.find((l) => new Date(l.date).getDay() === idx);
+    let weeklyLecturesTotal = 0;
+
+    const weeklyActivity = daysOfWeek.map((dayName, idx) => {
+      const targetDate = new Date(sundayDate);
+      targetDate.setDate(sundayDate.getDate() + idx);
+      const dateStr = targetDate.toISOString().split("T")[0];
+
+      const log = streak.activityLogs?.find((l) => l.date === dateStr);
+      const minutes = log ? log.minutes : 0;
+      const lectures = log ? log.lecturesCompleted : 0;
+
+      weeklyLecturesTotal += lectures;
+
       return {
-        day,
-        minutes: log ? log.minutes : Math.floor(Math.random() * 40) + 10,
-        lectures: log ? log.lecturesCompleted : Math.floor(Math.random() * 2) + 1,
+        day: dayName,
+        minutes,
+        lectures,
+        date: dateStr,
       };
     });
+
+    const targetLectures = streak.weeklyGoalLectures || 10;
+    const weeklyGoalProgress = Math.min(
+      100,
+      Math.round((weeklyLecturesTotal / targetLectures) * 100)
+    );
 
     return {
       user: {
@@ -167,21 +195,16 @@ class StudentService {
         coursesInProgress: inProgressCount,
         certificatesEarned,
         totalLearningHours: hoursStudied,
-        globalRank: "#4 Top 1%",
+        globalRank: streak.level > 5 ? "#1 Top Learner" : `#${Math.max(1, 10 - streak.level)} Scholar`,
         currentLevel: streak.level,
         learningXp: streak.totalXp,
         coins: streak.coins,
         badgesCount: streak.badges.length,
         achievementsCount: streak.achievements.length,
-        assignmentsPending: 2,
-        assignmentsSubmitted: 8,
-        avgQuizScore: 88,
-        attendancePercentage: 94,
+        avgQuizScore,
         currentStreak: streak.currentStreak,
         longestStreak: streak.longestStreak,
-        weeklyGoalProgress: 84, // %
-        learningSpeed: "1.4x Faster than Average",
-        skillGrowth: "+18%",
+        weeklyGoalProgress,
       },
       streak,
       resume,
@@ -196,15 +219,6 @@ class StudentService {
     const loginCount = await StudentSession.countDocuments({ userId });
 
     const activeSessions = sessions.filter((s) => s.status === "Active");
-    const securityAlerts = [
-      {
-        id: "alert_1",
-        title: "New Device Login Detected",
-        message: "Login from Chrome on Windows detected on current session.",
-        severity: "Low",
-        timestamp: new Date(),
-      },
-    ];
 
     return {
       totalLogins: loginCount,
@@ -212,7 +226,7 @@ class StudentService {
       activeDevicesCount: activeSessions.length,
       currentSession: activeSessions.find((s) => s.isCurrent) || sessions[0],
       sessionsHistory: sessions,
-      securityAlerts,
+      securityAlerts: [],
     };
   }
 
@@ -229,16 +243,38 @@ class StudentService {
     return true;
   }
 
-  // Log Daily Activity & Study Time
-  static async logActivity(userId, { minutes = 25, lecturesCount = 1, quizzesCount = 0 }) {
+  // Log Real Learning Activity & Compute Streak / XP
+  static async logActivity(userId, { minutes = 15, lecturesCount = 0, quizzesCount = 0 }) {
     let streak = await StudentStreak.findOne({ userId });
     if (!streak) {
       await this.ensureStudentRecords(userId);
       streak = await StudentStreak.findOne({ userId });
     }
 
-    const today = new Date().toISOString().split("T")[0];
-    const existingLogIndex = streak.activityLogs.findIndex((l) => l.date === today);
+    const todayStr = new Date().toISOString().split("T")[0];
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayStr = yesterdayDate.toISOString().split("T")[0];
+
+    const lastActive = streak.lastActiveDate;
+
+    if (!lastActive) {
+      streak.currentStreak = 1;
+    } else if (lastActive === todayStr) {
+      // Same day activity - streak stays same
+    } else if (lastActive === yesterdayStr) {
+      // Consecutive day - streak increments!
+      streak.currentStreak += 1;
+    } else {
+      // Missed 1+ days - reset streak to 1
+      streak.currentStreak = 1;
+    }
+
+    if (streak.currentStreak > streak.longestStreak) {
+      streak.longestStreak = streak.currentStreak;
+    }
+
+    const existingLogIndex = streak.activityLogs.findIndex((l) => l.date === todayStr);
 
     if (existingLogIndex >= 0) {
       streak.activityLogs[existingLogIndex].minutes += minutes;
@@ -246,28 +282,37 @@ class StudentService {
       streak.activityLogs[existingLogIndex].quizzesTaken += quizzesCount;
     } else {
       streak.activityLogs.push({
-        date: today,
+        date: todayStr,
         minutes,
         lecturesCompleted: lecturesCount,
         quizzesTaken: quizzesCount,
       });
-
-      // Update streak count if log is from new day
-      streak.currentStreak += 1;
-      if (streak.currentStreak > streak.longestStreak) {
-        streak.longestStreak = streak.currentStreak;
-      }
     }
 
     streak.totalStudyMinutes += minutes;
-    const addedXp = minutes * 5 + lecturesCount * 20;
+    const addedXp = minutes * 5 + lecturesCount * 25 + quizzesCount * 50;
     streak.totalXp += addedXp;
 
     // Check level up (1000 XP per level)
+    const oldLevel = streak.level;
     streak.level = Math.floor(streak.totalXp / 1000) + 1;
-    streak.lastActiveDate = today;
+    streak.lastActiveDate = todayStr;
+
+    if (streak.level > oldLevel) {
+      streak.coins += 50; // Award 50 bonus coins on level up
+      streak.achievements.push(`Reached Level ${streak.level}`);
+    }
 
     await streak.save();
+
+    // Emit Socket.IO real-time notification
+    emitToUser(userId, "streak_updated", {
+      currentStreak: streak.currentStreak,
+      totalXp: streak.totalXp,
+      level: streak.level,
+      coins: streak.coins,
+    });
+
     return streak;
   }
 
@@ -291,28 +336,13 @@ class StudentService {
   // Student Analytics
   static async getStudentAnalytics(userId) {
     const streak = await StudentStreak.findOne({ userId });
-    const user = await User.findById(userId).populate("courses");
+    const attempts = await QuizAttempt.find({ studentId: userId, status: "completed" });
 
     return {
-      skillRadar: [
-        { subject: "Data Structures", score: 85 },
-        { subject: "React Frontend", score: 92 },
-        { subject: "Node.js Backend", score: 78 },
-        { subject: "Database (MongoDB)", score: 70 },
-        { subject: "System Design", score: 62 },
-        { subject: "DevOps & Cloud", score: 55 },
-      ],
-      topicProgress: [
-        { topic: "React Hooks & State", progress: 95, status: "Mastered" },
-        { topic: "Express REST Architecture", progress: 88, status: "Advanced" },
-        { topic: "Binary Trees & Graphs", progress: 65, status: "In Progress" },
-        { topic: "Docker & Kubernetes", progress: 40, status: "Needs Practice" },
-      ],
-      learningVelocity: "Fast (45 mins/day average)",
-      engagementScore: 92, // %
-      productivityScore: 88,
-      strongTopics: ["React.js Component Architecture", "REST API Design", "Authentication"],
-      weakTopics: ["Dynamic Programming", "Kubernetes Deployment", "GraphQL Caching"],
+      learningVelocity: `${Math.round(streak.totalStudyMinutes / Math.max(1, streak.activityLogs.length))} mins/day average`,
+      totalXp: streak.totalXp,
+      level: streak.level,
+      totalQuizzesCompleted: attempts.length,
     };
   }
 
@@ -321,7 +351,6 @@ class StudentService {
     await this.ensureStudentRecords(userId);
     const resume = await StudentResume.findOne({ userId });
 
-    // Calculate placement readiness score
     const readiness = Math.round(
       (resume.dsaProgress * 0.3 +
         resume.frontendProgress * 0.2 +

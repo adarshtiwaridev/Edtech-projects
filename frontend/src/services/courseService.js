@@ -153,6 +153,21 @@ export const getCourseProgressApi = async (courseId) => {
   return response.data?.data || response.data;
 };
 
+export const generateCertificateApi = async (courseId) => {
+  const response = await axiosInstance.post("/v1/enhanced/certificates/generate", { courseId });
+  return response.data;
+};
+
+export const getUserCertificatesApi = async () => {
+  const response = await axiosInstance.get("/v1/enhanced/certificates/my-certificates");
+  return response.data?.data || [];
+};
+
+export const verifyCertificateApi = async (verificationId) => {
+  const response = await axiosInstance.get(`/v1/enhanced/certificates/verify/${verificationId}`);
+  return response.data;
+};
+
 export const filterTeacherCourses = (courses, teacherId) => {
   if (!courses || !Array.isArray(courses)) return [];
   return courses.filter((course) => {

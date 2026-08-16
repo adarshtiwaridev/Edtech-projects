@@ -1,6 +1,7 @@
 const CourseProgress = require("../models/CourseProgress");
 const Course = require("../models/Course");
 const SubSection = require("../models/SubSection");
+const StudentService = require("../services/StudentService");
 
 // Update or toggle lecture completion progress
 exports.updateCourseProgress = async (req, res) => {
@@ -25,6 +26,8 @@ exports.updateCourseProgress = async (req, res) => {
 
     let progress = await CourseProgress.findOne({ courseID: courseId, userId });
 
+    let isNewlyCompleted = false;
+
     if (!progress) {
       progress = await CourseProgress.create({
         courseID: courseId,
@@ -32,8 +35,11 @@ exports.updateCourseProgress = async (req, res) => {
         completedVideos: [subSectionId],
         lastWatchedSubSection: subSectionId,
       });
+      isNewlyCompleted = true;
     } else {
-      const isAlreadyCompleted = progress.completedVideos.includes(subSectionId);
+      const isAlreadyCompleted = progress.completedVideos.some(
+        (id) => String(id) === String(subSectionId)
+      );
 
       if (completed === false) {
         // Unmark completed
@@ -43,6 +49,7 @@ exports.updateCourseProgress = async (req, res) => {
       } else if (!isAlreadyCompleted) {
         // Mark completed
         progress.completedVideos.push(subSectionId);
+        isNewlyCompleted = true;
       }
 
       progress.lastWatchedSubSection = subSectionId;
@@ -68,6 +75,19 @@ exports.updateCourseProgress = async (req, res) => {
     const progressPercentage =
       totalSubsections > 0 ? Math.round((completedCount / totalSubsections) * 100) : 0;
 
+    // Log learning activity & update streak if newly completed
+    if (isNewlyCompleted) {
+      try {
+        await StudentService.logActivity(userId, {
+          minutes: 15,
+          lecturesCount: 1,
+          quizzesCount: 0,
+        });
+      } catch (logErr) {
+        console.error("Failed to update student activity log:", logErr.message);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       message: "Course progress updated successfully",
@@ -76,6 +96,7 @@ exports.updateCourseProgress = async (req, res) => {
         completedCount,
         totalSubsections,
         progressPercentage,
+        isCourseFullyCompleted: completedCount >= totalSubsections && totalSubsections > 0,
       },
     });
   } catch (error) {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
-  Flame, Trophy, Zap, Target, BookOpen, Clock, 
+  Flame, Trophy, Zap, BookOpen, Clock, 
   Award, Sparkles, Star, TrendingUp, Compass, ShieldCheck, Bell
 } from "lucide-react";
 
@@ -16,20 +16,20 @@ const StudentOverviewHeader = ({ user, overview, isDark, onOpenSecurityModal, on
   }, []);
 
   const stats = overview?.stats || {
-    coursesPurchased: 3,
-    coursesCompleted: 1,
-    coursesInProgress: 2,
-    certificatesEarned: 1,
-    totalLearningHours: "42.5",
-    globalRank: "#4 Top 1%",
-    currentLevel: 4,
-    learningXp: 1850,
-    coins: 120,
-    currentStreak: 5,
-    weeklyGoalProgress: 84,
+    coursesPurchased: 0,
+    coursesCompleted: 0,
+    coursesInProgress: 0,
+    certificatesEarned: 0,
+    totalLearningHours: "0.0",
+    globalRank: "Scholar",
+    currentLevel: 1,
+    learningXp: 0,
+    coins: 0,
+    currentStreak: 0,
+    weeklyGoalProgress: 0,
   };
 
-  const streak = overview?.streak || { currentStreak: 5 };
+  const streak = overview?.streak || { currentStreak: stats.currentStreak || 0 };
 
   const cardBg = isDark 
     ? "bg-slate-900/80 border-slate-800 text-white" 
@@ -53,7 +53,7 @@ const StudentOverviewHeader = ({ user, overview, isDark, onOpenSecurityModal, on
                 Level {stats.currentLevel} Scholar
               </span>
               <span className="flex items-center gap-1 text-xs font-medium text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                <Flame size={14} className="fill-amber-500 text-amber-500 animate-pulse" /> {streak.currentStreak} Day Streak 🔥
+                <Flame size={14} className="fill-amber-500 text-amber-500 animate-pulse" /> {streak.currentStreak || 0} Day Streak 🔥
               </span>
               <button
                 onClick={onOpenSecurityModal}
@@ -63,7 +63,7 @@ const StudentOverviewHeader = ({ user, overview, isDark, onOpenSecurityModal, on
               </button>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight">
-              {greeting}, {user?.firstName || "Student"}! 🚀
+              {greeting}, {user?.firstName || "Learner"}! 🚀
             </h1>
             <p className="text-sm text-slate-400 mt-1 flex items-center gap-2">
               <Sparkles size={14} className="text-amber-400" />
@@ -182,7 +182,7 @@ const StudentOverviewHeader = ({ user, overview, isDark, onOpenSecurityModal, on
 
         <div className="pt-3 border-t border-slate-700/40 text-xs text-slate-400 flex justify-between items-center">
           <span>Next Milestone: Level {stats.currentLevel + 1}</span>
-          <span className="font-semibold text-indigo-400">+150 XP needed</span>
+          <span className="font-semibold text-indigo-400">XP Goal: {stats.currentLevel * 1000}</span>
         </div>
       </motion.div>
     </div>

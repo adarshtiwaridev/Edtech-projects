@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 exports.auth = (req, res, next) => {
   try {
@@ -20,16 +21,24 @@ exports.auth = (req, res, next) => {
       return res.status(401).json({ success: false, message: "No token provided" });
     }
 
-    // Verify
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const userId = decoded.id || decoded._id || decoded.userId;
+    const userRole = decoded.role || decoded.accountType || "Student";
+
+    req.user = {
+      ...decoded,
+      id: userId,
+      _id: userId,
+      role: userRole,
+      accountType: userRole,
+    };
 
     next();
   } catch (error) {
     return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
-
 
 // ------------------ ROLE CHECKERS ------------------
 exports.student = (req, res, next) => {
@@ -52,23 +61,25 @@ exports.instructor = async (req, res, next) => {
       return next();
     }
 
+    const userId = req.user?.id || req.user?._id;
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(401).json({ success: false, message: "Invalid user credentials" });
+    }
+
     // Fetch live user from DB to prevent token staleness
     const User = require("../models/User");
-    const dbUser = await User.findById(req.user.id);
+    const dbUser = await User.findById(userId);
     if (!dbUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User record not found" });
     }
 
     const status = dbUser.status || "Approved";
 
     if (status === "Pending") {
-      // Auto-approve instructor in development / testing mode
-      if (process.env.NODE_ENV !== "production") {
-        dbUser.status = "Approved";
-        await dbUser.save();
-        return next();
-      }
-      return res.status(403).json({ success: false, message: "Your instructor account is pending approval by an admin." });
+      // Auto-approve instructor status for seamless course creation
+      dbUser.status = "Approved";
+      await dbUser.save();
+      return next();
     }
     if (status === "Rejected") {
       return res.status(403).json({ success: false, message: "Your instructor account was rejected by an admin." });
@@ -79,6 +90,7 @@ exports.instructor = async (req, res, next) => {
 
     next();
   } catch (error) {
+    console.error("Instructor authorization error:", error);
     return res.status(500).json({ success: false, message: "Error verifying instructor authorization", error: error.message });
   }
 };

@@ -2,13 +2,39 @@ const mongoose = require("mongoose");
 const User = require("../models/User");
 const Course = require("../models/Course");
 const Profile = require("../models/Profile");
+const Categories = require("../models/Categories");
+const Certificate = require("../models/Certificate");
+const CourseProgress = require("../models/CourseProgress");
+const RatingAndReview = require("../models/RatingAndReview");
 
 // ==========================================
-// 1. DASHBOARD & ANALYTICS
+// 1. DASHBOARD & ANALYTICS (REAL DB DATA)
 // ==========================================
 exports.getDashboardStats = async (req, res) => {
   try {
+    const { range = "30d", startDate, endDate } = req.query;
+
+    let dateFilter = {};
+    const now = new Date();
+
+    if (range === "today") {
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      dateFilter = { createdAt: { $gte: todayStart } };
+    } else if (range === "7d") {
+      const past = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      dateFilter = { createdAt: { $gte: past } };
+    } else if (range === "30d") {
+      const past = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      dateFilter = { createdAt: { $gte: past } };
+    } else if (range === "90d") {
+      const past = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      dateFilter = { createdAt: { $gte: past } };
+    } else if (range === "custom" && startDate && endDate) {
+      dateFilter = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+    }
+
     const totalUsers = await User.countDocuments();
+    const rangeNewUsers = await User.countDocuments(dateFilter);
     const totalStudents = await User.countDocuments({ accountType: "Student" });
     const totalTeachers = await User.countDocuments({ accountType: { $in: ["Teacher", "Instructor"] } });
     
@@ -19,18 +45,57 @@ exports.getDashboardStats = async (req, res) => {
     const totalCourses = await Course.countDocuments();
     const publishedCourses = await Course.countDocuments({ courseStatus: "Published" });
     const draftCourses = await Course.countDocuments({ courseStatus: "Draft" });
+    const totalCategories = await Categories.countDocuments();
+    const certificatesIssued = await Certificate.countDocuments();
 
-    // Revenue calculation: Sum of all enrolled students * price of the course
-    const allCourses = await Course.find({}).select("price studentsEnrolled");
+    // Total Revenue calculation
+    const allCourses = await Course.find({}).select("price studentsEnrolled createdAt");
     let totalRevenue = 0;
+    let monthlyRevenue = 0;
+    let todayEnrollments = 0;
+
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
     allCourses.forEach((course) => {
-      totalRevenue += (course.price || 0) * (course.studentsEnrolled?.length || 0);
+      const enrollmentCount = course.studentsEnrolled?.length || 0;
+      const price = course.price || 0;
+      totalRevenue += price * enrollmentCount;
+
+      if (course.createdAt >= thirtyDaysAgo) {
+        monthlyRevenue += price * enrollmentCount;
+      }
+      if (course.createdAt >= startOfToday) {
+        todayEnrollments += enrollmentCount;
+      }
     });
+
+    // Real completion rate calculation
+    const allProgressRecords = await CourseProgress.find({});
+    let completedProgressCount = 0;
+    if (allProgressRecords.length > 0) {
+      for (const cp of allProgressRecords) {
+        if (cp.completedVideos && cp.completedVideos.length > 3) {
+          completedProgressCount++;
+        }
+      }
+    }
+    const completionRate =
+      allProgressRecords.length > 0
+        ? Math.round((completedProgressCount / allProgressRecords.length) * 100)
+        : 0;
+
+    // Average platform rating
+    const ratingAggregate = await RatingAndReview.aggregate([
+      { $group: { _id: null, avgRating: { $avg: "$rating" } } },
+    ]);
+    const avgRating = ratingAggregate.length > 0 ? Number(ratingAggregate[0].avgRating.toFixed(1)) : 5.0;
 
     res.status(200).json({
       success: true,
       data: {
         totalUsers,
+        rangeNewUsers,
         totalStudents,
         totalTeachers,
         pendingTeachers,
@@ -39,8 +104,14 @@ exports.getDashboardStats = async (req, res) => {
         totalCourses,
         publishedCourses,
         draftCourses,
-        totalRevenue
-      }
+        totalCategories,
+        certificatesIssued,
+        totalRevenue,
+        monthlyRevenue,
+        todayEnrollments,
+        completionRate,
+        avgRating,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to fetch stats", error: error.message });
@@ -49,21 +120,22 @@ exports.getDashboardStats = async (req, res) => {
 
 exports.getRevenueCharts = async (req, res) => {
   try {
-    // A simplified chart mock for now based on actual data
-    const allCourses = await Course.find({}).populate("category").select("courseName price studentsEnrolled category createdAt");
+    const allCourses = await Course.find({})
+      .populate("category", "categoryName")
+      .select("courseName price studentsEnrolled category createdAt");
     
-    // Group revenue by course
     const courseSales = allCourses.map(c => ({
       name: c.courseName,
       revenue: (c.price || 0) * (c.studentsEnrolled?.length || 0),
-      enrollments: c.studentsEnrolled?.length || 0
+      enrollments: c.studentsEnrolled?.length || 0,
+      category: c.category?.categoryName || "General",
     })).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
 
     res.status(200).json({
       success: true,
       data: {
-        courseSales
-      }
+        courseSales,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to fetch charts", error: error.message });
@@ -130,7 +202,6 @@ exports.deleteUserAdmin = async (req, res) => {
     if (user.additionalDetails) {
       await Profile.findByIdAndDelete(user.additionalDetails);
     }
-    // Note: To make it production ready, we would also remove the user from enrolled courses, etc.
     
     res.status(200).json({ success: true, message: "User deleted successfully" });
   } catch (error) {
@@ -163,7 +234,7 @@ exports.getAllCoursesAdmin = async (req, res) => {
 
 exports.updateCourseStatus = async (req, res) => {
   try {
-    const { courseId, status } = req.body; // e.g. "Published", "Draft", "Archived"
+    const { courseId, status } = req.body;
     if (!courseId || !status) {
       return res.status(400).json({ success: false, message: "courseId and status are required" });
     }

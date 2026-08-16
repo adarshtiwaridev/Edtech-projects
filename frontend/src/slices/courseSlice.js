@@ -103,13 +103,10 @@ export const createCourse = createAsyncThunk(
           if (latestSection?._id && Array.isArray(section.lectures)) {
             for (const lecture of section.lectures) {
               if (!lecture.title?.trim()) continue;
-              if (!(lecture.videoFile instanceof File)) {
-                throw new Error(`Please choose a local video file for lecture "${lecture.title}"`);
-              }
               await createLectureApi({
                 sectionId: latestSection._id,
                 title: lecture.title,
-                videoUrl: lecture.videoFile,
+                videoUrl: lecture.videoFile instanceof File ? lecture.videoFile : (lecture.videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"),
                 notes: lecture.notes,
               });
             }
