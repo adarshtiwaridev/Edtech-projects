@@ -9,6 +9,7 @@ const os = require("os");
 
 const cloudconnect = require("./config/cloudinary");
 const { errorHandler } = require("./middleware/errorHandler");
+const requestLogger = require("./middleware/logger");
 const { auth } = require("./middleware/Auth");
 const authorizeQuizManagement = require("./middleware/authorizeQuizManagement");
 const { createQuiz, uploadAndExtractPdfQuiz } = require("./controllers/QuizController");
@@ -35,9 +36,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Security middlewares
+// Security & logging middlewares
 app.use(helmet());
 app.use(mongoSanitize());
+if (process.env.NODE_ENV !== "test") {
+  app.use(requestLogger);
+}
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -101,6 +105,13 @@ app.post("/api/quiz/pdf-extract", auth, authorizeQuizManagement, uploadAndExtrac
 app.use("/api/users", userRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/course", courseRoutes);
+app.use("/api/v1/courses", courseRoutes);
+app.use("/api/v1/course", courseRoutes);
+app.use("/v1/courses", courseRoutes);
+app.use("/v1/course", courseRoutes);
+app.use("/courses", courseRoutes);
+app.use("/course", courseRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/v1/student", studentRoutes);
@@ -110,9 +121,15 @@ app.use("/api/quiz", quizRoutes);
 app.use("/v1/quiz", quizRoutes);
 app.use("/quiz", quizRoutes);
 
-// Health check endpoint
-app.get("/", (req, res) => {
-  res.json({ status: "success", message: "✅ JP EdTech Backend API is running" });
+// Health check endpoints
+app.get(["/", "/health", "/api/health"], (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    success: true,
+    message: "✅ Kodemates EdTech Backend API is running",
+    environment: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // 404 Fallback for unhandled API routes

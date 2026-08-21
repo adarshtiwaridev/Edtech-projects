@@ -75,7 +75,9 @@ describe("Course Creation API End-to-End & Boundary Resilience Tests", () => {
       populate: jest.fn().mockReturnValue({
         populate: jest.fn().mockReturnValue({
           populate: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue(mockCreatedCourse),
+            populate: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(mockCreatedCourse),
+            }),
           }),
         }),
       }),

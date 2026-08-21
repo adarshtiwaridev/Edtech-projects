@@ -238,7 +238,10 @@ class StudentService {
         { status: "Terminated" }
       );
     } else {
-      await StudentSession.findByIdAndUpdate(sessionId, { status: "Terminated", isCurrent: false });
+      await StudentSession.findOneAndUpdate(
+        { _id: sessionId, userId },
+        { status: "Terminated", isCurrent: false }
+      );
     }
     return true;
   }

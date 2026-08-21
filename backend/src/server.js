@@ -15,8 +15,28 @@ const startServer = async () => {
     const allowedOrigins = app.get("allowedOrigins") || [];
     initSocket(server, allowedOrigins);
 
+    const mongoose = require("mongoose");
+
+    const gracefulShutdown = (signal) => {
+      console.log(`\n⚠️ Received ${signal}. Starting graceful shutdown...`);
+      server.close(async () => {
+        console.log("🔒 HTTP server closed.");
+        try {
+          await mongoose.connection.close(false);
+          console.log("📂 MongoDB connection closed cleanly.");
+          process.exit(0);
+        } catch (err) {
+          console.error("❌ Error closing MongoDB connection:", err);
+          process.exit(1);
+        }
+      });
+    };
+
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+
     server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT} with Socket.IO enabled`);
+      console.log(`🚀 Kodemates EdTech Server running on port ${PORT} with Socket.IO enabled`);
     });
   } catch (error) {
     console.error("❌ Failed to connect DB:", error);
@@ -25,4 +45,3 @@ const startServer = async () => {
 };
 
 startServer();
-

@@ -41,7 +41,7 @@ router.post("/verify-otp", authLimiter, validate(verifyOtpSchema), verifyOtp);
 router.post("/refresh", authLimiter, refreshToken);
 router.post("/contactus", apiLimiter, createContactus);
 
-router.delete("/deleteAccount",  deleteAccount);
+router.delete("/deleteAccount", auth, deleteAccount);
 
 /* ================= PASSWORD ROUTES ================= */
 

@@ -15,6 +15,10 @@ exports.createSubSection = async (req, res) => {
     const video = req.files?.video || req.files?.videoFile || req.files?.videoFiles || req.files?.videoUrl;
     const existingVideoUrl = req.body.videoUrl || req.body.videourl;
 
+    const pdfFile = req.files?.pdf || req.files?.pdfFile || req.files?.notesFile;
+    let pdfUrl = req.body.pdfUrl || req.body.notesUrl || "";
+    let pdfName = req.body.pdfName || (pdfFile ? pdfFile.name : "");
+
     if (!sectionId || !title) {
       return res.status(400).json({
         success: false,
@@ -47,11 +51,30 @@ exports.createSubSection = async (req, res) => {
       }
     }
 
+    if (pdfFile) {
+      try {
+        const filePath = pdfFile.tempFilePath || pdfFile.path;
+        const uploadDetails = await uploadOptimizedFile(
+          filePath,
+          "Kodemates-notes",
+          { resource_type: "raw" }
+        );
+        if (uploadDetails?.secure_url) {
+          pdfUrl = uploadDetails.secure_url;
+          pdfName = pdfFile.name || "Lecture-Notes.pdf";
+        }
+      } catch (pdfErr) {
+        console.warn("Cloudinary PDF upload fallback activated:", pdfErr.message);
+      }
+    }
+
     const subSectionDetails = await SubSection.create({
       title,
       timeDuration: calculatedDuration,
       description,
       videourl: videoUrl,
+      pdfUrl,
+      pdfName,
     });
 
     const updatedSection = await Section.findByIdAndUpdate(
@@ -90,6 +113,8 @@ exports.updateSubSection = async (req, res) => {
     const description = req.body.description || req.body.descptions || req.body.descriptions;
     const timeDuration = req.body.timeDuration || req.body.duration;
     const video = req.files?.video || req.files?.videoFile || req.files?.videoFiles || req.files?.videoUrl;
+    const pdfFile = req.files?.pdf || req.files?.pdfFile || req.files?.notesFile;
+    const removePdf = req.body.removePdf === "true" || req.body.removePdf === true;
 
     if (!subSectionId) {
       return res.status(400).json({
@@ -109,6 +134,13 @@ exports.updateSubSection = async (req, res) => {
     if (title !== undefined) subSectionDetails.title = title;
     if (timeDuration !== undefined) subSectionDetails.timeDuration = timeDuration;
     if (description !== undefined) subSectionDetails.description = description;
+    if (req.body.pdfUrl !== undefined) subSectionDetails.pdfUrl = req.body.pdfUrl;
+    if (req.body.pdfName !== undefined) subSectionDetails.pdfName = req.body.pdfName;
+
+    if (removePdf) {
+      subSectionDetails.pdfUrl = "";
+      subSectionDetails.pdfName = "";
+    }
 
     if (video) {
       try {
@@ -126,6 +158,23 @@ exports.updateSubSection = async (req, res) => {
         }
       } catch (uploadErr) {
         console.warn("Cloudinary video update fallback activated:", uploadErr.message);
+      }
+    }
+
+    if (pdfFile) {
+      try {
+        const filePath = pdfFile.tempFilePath || pdfFile.path;
+        const uploadDetails = await uploadOptimizedFile(
+          filePath,
+          "Kodemates-notes",
+          { resource_type: "raw" }
+        );
+        if (uploadDetails?.secure_url) {
+          subSectionDetails.pdfUrl = uploadDetails.secure_url;
+          subSectionDetails.pdfName = pdfFile.name || "Lecture-Notes.pdf";
+        }
+      } catch (pdfErr) {
+        console.warn("Cloudinary PDF upload fallback activated:", pdfErr.message);
       }
     }
 

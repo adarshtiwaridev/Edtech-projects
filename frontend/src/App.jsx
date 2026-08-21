@@ -56,8 +56,26 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/quiz" element={<Quiz />} />
-        <Route path="/admin-quiz" element={<AdminQuiz />} />
-        <Route path="/admin-quiz-builder" element={<AdminQuizCreator />} />
+        <Route
+          path="/admin-quiz"
+          element={
+            <ProtectedRoute>
+              <RoleGuard allowedRoles={["Admin", "Teacher", "Instructor"]}>
+                <AdminQuiz />
+              </RoleGuard>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin-quiz-builder"
+          element={
+            <ProtectedRoute>
+              <RoleGuard allowedRoles={["Admin", "Teacher", "Instructor"]}>
+                <AdminQuizCreator />
+              </RoleGuard>
+            </ProtectedRoute>
+          }
+        />
         <Route path="/attempt-quiz/:quizId" element={<StudentQuizAttemptScreen />} />
         <Route path="/quiz-result/:attemptId" element={<QuizResultDashboard />} />
         <Route path="/admin/login" element={<AdminLogin />} />

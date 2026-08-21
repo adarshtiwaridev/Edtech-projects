@@ -22,6 +22,16 @@ const SubSectionSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    pdfUrl: {
+        type: String,
+        default: "",
+        trim: true
+    },
+    pdfName: {
+        type: String,
+        default: "",
+        trim: true
+    },
 
     
 });
